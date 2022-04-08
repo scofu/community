@@ -148,13 +148,13 @@ final class StatsCommands implements Feature {
           hologram.setLines(lines -> {
             lines.add(text("Coins Leaderboard").color(NamedTextColor.YELLOW)
                 .decoration(TextDecoration.BOLD, State.TRUE));
-            page.documents().forEach((stats, placement) -> {
-              lines.add(text(placement + ". ").color(NamedTextColor.YELLOW)
-                  .append(text(stats.playerId()).color(NamedTextColor.WHITE)
-                      .append(text(" - ").color(NamedTextColor.GRAY)
-                          .append(text(stats.getLong("coins").orElse(0L) + "").color(
-                              NamedTextColor.YELLOW)))));
-            });
+            page.documents()
+                .forEach((stats, placement) -> lines.add(
+                    text(placement + ". ").color(NamedTextColor.YELLOW)
+                        .append(text(stats.playerId()).color(NamedTextColor.WHITE)
+                            .append(text(" - ").color(NamedTextColor.GRAY)
+                                .append(text(stats.getLong("coins").orElse(0L) + "").color(
+                                    NamedTextColor.YELLOW))))));
             lines.add(Component.empty());
             lines.add(text(
                 "Refreshes in " + coinsLeaderboardTest.durationUntilNextRefresh().toSeconds()
