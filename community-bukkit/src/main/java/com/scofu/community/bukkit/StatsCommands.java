@@ -41,7 +41,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.format.TextDecoration.State;
-import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -186,13 +185,10 @@ final class StatsCommands implements Feature {
                   new ProfileProperty("textures", profile.textures().raw().value(),
                       profile.textures().raw().signature()));
             });
+            onClick(() -> {
+              player.sendMessage(text("bing bong").color(NamedTextColor.LIGHT_PURPLE));
+            });
           }
-
-          @Override
-          public void handleUse(ServerboundInteractPacket packet) {
-            player.sendMessage(text("bing bong").color(NamedTextColor.LIGHT_PURPLE));
-          }
-
         });
     design.bind(player)
         .through(TextHolograms.class, TextHolograms::new)
