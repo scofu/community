@@ -4,8 +4,10 @@ import static com.scofu.network.document.Filter.empty;
 import static com.scofu.network.document.Filter.exists;
 import static com.scofu.network.document.Filter.where;
 import static com.scofu.network.document.Sort.by;
+import static java.util.concurrent.CompletableFuture.allOf;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.toComponent;
 import static net.kyori.adventure.text.Component.translatable;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
@@ -86,7 +88,7 @@ final class StatsCommands implements Feature {
                       .append(text(
                           entry.getValue().value() + " (" + entry.getValue().type() + ")").color(
                           NamedTextColor.GREEN)))
-                  .collect(Component.toComponent(newline())));
+                  .collect(toComponent(newline())));
           player.sendMessage(component);
         }, () -> {
           player.sendMessage(text("No stats found."));
@@ -211,7 +213,7 @@ final class StatsCommands implements Feature {
         .peek(stats -> stats.setLong("coins", ThreadLocalRandom.current().nextInt(1, 10_000)))
         .map(statsRepository::update)
         .toArray(CompletableFuture[]::new);
-    CompletableFuture.allOf(futures).whenComplete(((x, throwable) -> {
+    allOf(futures).whenComplete(((x, throwable) -> {
       if (throwable != null) {
         throwable.printStackTrace();
         player.sendMessage(translatable("Error, something went wrong."));
@@ -257,7 +259,7 @@ final class StatsCommands implements Feature {
                         .append(text(entry.getKey().playerId()).color(NamedTextColor.WHITE)))
                     .append(text(" - ").color(NamedTextColor.GRAY))
                     .append(text(entry.getKey().getLong("coins").orElse(0L))))
-                .collect(Component.toComponent(newline())))
+                .collect(toComponent(newline())))
             .append(newline())
             .append(text(actualPage > 1 ? "[Previous page] " : "").clickEvent(
                 ClickEvent.runCommand("/coinsleaderboard " + (actualPage - 1))))
