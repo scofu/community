@@ -142,7 +142,7 @@ final class GrantCommands implements Listener, Feature {
 
       @Override
       protected Component title(String search, int page, int pages) {
-        return text("Test: " + search + " (" + page + "/" + pages + ")");
+        return text("Test");
       }
 
       @Override

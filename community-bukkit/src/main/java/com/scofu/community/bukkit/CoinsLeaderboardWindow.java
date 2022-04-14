@@ -63,8 +63,7 @@ final class CoinsLeaderboardWindow extends PaginatedWindow {
 
   @Override
   protected Component title(String search, int page, int pages) {
-    return text("Ranks: (" + page + "/" + pages + ")" + (search.isEmpty() || search.isBlank() ? ""
-        : " \"" + search + "\""));
+    return text("Coins");
   }
 
   @Override

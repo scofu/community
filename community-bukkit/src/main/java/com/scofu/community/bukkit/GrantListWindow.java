@@ -40,8 +40,7 @@ final class GrantListWindow extends PaginatedWindow {
 
   @Override
   protected Component title(String search, int page, int pages) {
-    return text("Grants: (" + page + "/" + pages + ")" + (search.isEmpty() || search.isBlank() ? ""
-        : " \"" + search + "\""));
+    return text("Grants");
   }
 
   @Override
