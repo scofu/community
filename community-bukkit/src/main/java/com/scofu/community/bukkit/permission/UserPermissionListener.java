@@ -6,7 +6,7 @@ import com.scofu.community.UserRepository;
 import com.scofu.community.bukkit.event.UserLoginEvent;
 import java.lang.reflect.Field;
 import javax.inject.Inject;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftHumanEntity;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftHumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
