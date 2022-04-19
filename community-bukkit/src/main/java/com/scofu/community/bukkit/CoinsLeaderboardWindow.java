@@ -45,7 +45,7 @@ final class CoinsLeaderboardWindow extends PaginatedWindow {
     super.populate();
     final var button = Button.builder()
         .at(9 * 5)
-        .withItem(player().locale(), builder -> builder.ofType(Material.CLOCK)
+        .withItem(viewer(), builder -> builder.ofType(Material.CLOCK)
             .withName(text("Next Refresh"))
             .withDescription(translatable("Next refresh is in {0}s.",
                 text(coinsLeaderboard.durationUntilNextRefresh().toSeconds()))))
@@ -105,7 +105,7 @@ final class CoinsLeaderboardWindow extends PaginatedWindow {
 
   private ButtonBuilder createButton(Stats stats, int placement) {
     return Button.builder()
-        .withStaticItem(player().locale(), builder -> builder.ofType(Material.PLAYER_HEAD)
+        .withStaticItem(viewer(), builder -> builder.ofType(Material.PLAYER_HEAD)
             .withName(translatable("%s %s", text(placement + "."), text(stats.playerId())))
             .withDescription(text(stats.getLong("coins").orElse(0L))))
         .onClick(event -> {

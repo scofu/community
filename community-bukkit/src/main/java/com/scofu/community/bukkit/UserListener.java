@@ -1,7 +1,7 @@
 package com.scofu.community.bukkit;
 
-import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.translatable;
 
 import com.scofu.chat.ParticipantRegistry;
 import com.scofu.common.inject.Feature;
@@ -70,15 +70,12 @@ final class UserListener implements Feature, Listener {
   @EventHandler(priority = EventPriority.HIGH)
   private void onPlayerJoinEvent(PlayerJoinEvent event) {
     final var player = event.getPlayer();
-    if (!player.hasPermission("scofu.staffchat")) {
+    if (!player.hasPermission("scofu.staffchat") && !player.isOp()) {
       return;
     }
     participantRegistry.get(player).join(staffChat);
-    staffChat.sendMessage(text().append(StaffChat.Renderer.PREFIX)
-        .append(space())
-        .append(player.displayName())
-        .append(text(" joined " + localHost.getHostName() + "."))
-        .build());
+    staffChat.sendRawMessage(
+        translatable("%s joined %s.", text(player.getName()), text(localHost.getHostName())));
   }
 
 }

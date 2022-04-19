@@ -67,6 +67,11 @@ final class GrantCommands implements Listener, Feature {
   //    ((CraftPlayer) player).getHandle().networkManager.a(packet);
   //  }
 
+  @Identified("console")
+  private void console(String command) {
+    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
+  }
+
   @Identified("grants")
   @Permission("scofu.command.grants")
   private void grants(Expansion<Player> source, Player target) {
@@ -153,12 +158,12 @@ final class GrantCommands implements Listener, Feature {
                 .toLowerCase(Locale.ROOT)
                 .contains(search.toLowerCase(Locale.ROOT)))
             .map(material -> Button.builder()
-                .withItem(player().locale(), builder -> builder.ofType(material)
+                .withItem(viewer(), builder -> builder.ofType(material)
                     .withName(text(material.name().toLowerCase(Locale.ROOT))))
                 .onClick(event -> {
                   event.setCancelled(true);
-                  player().closeInventory();
-                  player().sendActionBar(text("yoooo"));
+                  viewer().player().closeInventory();
+                  viewer().player().sendActionBar(text("yoooo"));
                 }))
             .toList();
       }

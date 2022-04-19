@@ -12,10 +12,10 @@ import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
 import com.scofu.design.bukkit.window.Window;
 import com.scofu.network.document.Query;
+import com.scofu.text.Color;
 import java.util.List;
 import java.util.Locale;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 
 final class RankListWindow extends PaginatedWindow {
@@ -55,10 +55,12 @@ final class RankListWindow extends PaginatedWindow {
 
   private ButtonBuilder createButton(Rank rank) {
     return Button.builder()
-        .withItem(player().locale(), builder -> builder.ofType(Material.NAME_TAG)
-            .withName(text(rank.id()).color(rank.nameColor().orElse(NamedTextColor.WHITE)))
+        .withItem(viewer(), builder -> builder.ofType(Material.NAME_TAG)
+            .withName(text(rank.name()).color(
+                rank.nameColor().orElse(Color.WHITE).toColor(viewer().theme())))
             .withTag(translatable("Priority: %s", text(rank.priority())))
-            .withTag(translatable("Prefix: %s", rank.prefix().orElse(empty())))
+            .withTag(translatable("Prefix: %s",
+                rank.prefix().flatMap(prefix -> prefix.render(viewer().theme())).orElse(empty())))
             .withFooter(text("Click to edit!"))
             .withFooter(text("Shift+Click to delete!")))
         .onClick(event -> {

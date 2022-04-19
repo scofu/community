@@ -1,12 +1,19 @@
 package com.scofu.community;
 
+import static com.scofu.network.document.Filter.matchesText;
+import static com.scofu.network.document.Filter.where;
+import static com.scofu.network.document.Text.search;
+
 import com.google.common.cache.CacheBuilder;
 import com.scofu.common.json.Json;
 import com.scofu.network.document.AbstractDocumentRepository;
+import com.scofu.network.document.Query;
 import com.scofu.network.document.RepositoryConfiguration;
 import com.scofu.network.message.MessageFlow;
 import com.scofu.network.message.MessageQueue;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 
 /**
@@ -23,6 +30,18 @@ public class RankRepository extends AbstractDocumentRepository<Rank> {
   }
 
   /**
+   * Finds and returns an optional rank with the given name.
+   *
+   * @param name the name
+   */
+  public CompletableFuture<Optional<Rank>> findByName(String name) {
+    return find(Query.builder()
+        .filter(where("name", matchesText(search(name))))
+        .limitTo(1)
+        .build()).thenApply(ranks -> ranks.values().stream().findFirst());
+  }
+
+  /**
    * Resolves and returns whether the given rank has the given permission or not.
    *
    * @param rank       the rank
@@ -34,6 +53,7 @@ public class RankRepository extends AbstractDocumentRepository<Rank> {
         return Optional.empty();
       }
       return rank.inheritance()
+          .orElse(Set.of())
           .stream()
           .map(this::byId)
           .filter(Optional::isPresent)

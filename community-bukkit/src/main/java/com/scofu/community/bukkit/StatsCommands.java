@@ -28,6 +28,7 @@ import com.scofu.mojang.profile.ProfileRepository;
 import com.scofu.network.document.Book;
 import com.scofu.network.document.Order;
 import com.scofu.network.document.Query;
+import com.scofu.text.json.TagFactory;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,10 +53,11 @@ final class StatsCommands implements Feature {
   private final Book<Stats> coinsLeaderboard;
   private final Book<Stats> coinsLeaderboardTest;
   private final Design design;
+  private final TagFactory tagFactory;
 
   @Inject
   StatsCommands(Plugin plugin, StatsRepository statsRepository, ProfileRepository profileRepository,
-      Design design) {
+      Design design, TagFactory tagFactory) {
     this.plugin = plugin;
     this.statsRepository = statsRepository;
     coinsLeaderboard = Book.of(Query.builder()
@@ -68,6 +70,7 @@ final class StatsCommands implements Feature {
         .build(), 10, statsRepository, Duration.ofSeconds(60));
     this.profileRepository = profileRepository;
     this.design = design;
+    this.tagFactory = tagFactory;
   }
 
   @Identified("stats")
@@ -174,9 +177,9 @@ final class StatsCommands implements Feature {
     final var npcLocation = player.getLocation().clone();
     final var hologramLocation = npcLocation.clone().subtract(0, TextHologram.HOLOGRAM_HEIGHT, 0);
     design.bind(player)
-        .through(Npcs.class, () -> new Npcs(plugin))
+        .through(Npcs.class, () -> new Npcs(plugin, tagFactory))
         .withKey(UUID.randomUUID().toString())
-        .to(new Npc(null, plugin) {
+        .to(new Npc(null, plugin, tagFactory) {
           @Override
           public void populate() {
             setLocation(() -> npcLocation);

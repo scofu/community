@@ -42,14 +42,15 @@ final class RankTransformer implements Transformer<Rank> {
   @Override
   public Stream<String> suggest(Command command, Parameter<Rank> parameter, Parameters parameters,
       Result<String> argument) {
-    return rankRepository.cache().asMap().keySet().stream();
+    return rankRepository.cache().asMap().values().stream().map(Rank::name);
   }
 
   private Result<Rank> parseRank(String string, Parameter<Rank> parameter) {
-    return rankRepository.byId(string)
+    return rankRepository.findByName(string)
+        .join()
         .map(Result::value)
         .orElseGet(() -> Result.error(
-            new ParameterArgumentException(translatable("No rank with id %s.", text(string)),
+            new ParameterArgumentException(translatable("No rank with name %s.", text(string)),
                 parameter)));
   }
 }

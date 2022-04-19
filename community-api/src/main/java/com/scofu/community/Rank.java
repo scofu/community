@@ -2,109 +2,108 @@ package com.scofu.community;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.jsoniter.annotation.JsonCreator;
-import com.jsoniter.annotation.JsonProperty;
 import com.scofu.common.json.PeriodEscapedString;
+import com.scofu.common.json.lazy.Lazy;
 import com.scofu.network.document.Document;
+import com.scofu.text.Color;
+import com.scofu.text.Renderable;
+import com.scofu.text.Theme;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A rank.
  */
-public class Rank implements Document, Comparable<Rank> {
+public interface Rank extends Lazy, Document, Renderable, Comparable<Rank> {
 
-  private static final Rank EMPTY = new Rank(null);
+  static Rank empty() {
+    return EmptyRank.INSTANCE;
+  }
 
-  @JsonProperty("_id")
-  private final String id;
-  private final Map<PeriodEscapedString, Boolean> permissions;
-  private final Set<String> inheritance;
-  private int priority;
-  private Component prefix;
-  private TextColor nameColor;
+  String name();
+
+  void setName(String name);
+
+  Optional<RankPrefix> prefix();
+
+  void setPrefix(RankPrefix prefix);
+
+  int priority();
+
+  void setPriority(int priority);
+
+  Optional<Color> nameColor();
+
+  void setNameColor(Color nameColor);
+
+  Optional<Map<PeriodEscapedString, Boolean>> permissions();
+
+  void setPermissions(Map<PeriodEscapedString, Boolean> permissions);
 
   /**
-   * Constructs a new rank.
+   * See {@link Map#put(Object, Object)}.
    *
-   * @param id the id
+   * @param string the string
+   * @param value  the value
    */
-  @JsonCreator
-  public Rank(String id) {
-    this.id = id;
-    this.permissions = Maps.newHashMap();
-    this.inheritance = Sets.newHashSet();
+  default Boolean addPermission(PeriodEscapedString string, Boolean value) {
+    var permissions = permissions().orElseGet(Maps::newConcurrentMap);
+    final var previous = permissions.put(string, value);
+    setPermissions(permissions);
+    return previous;
   }
 
   /**
-   * Returns the empty rank.
-   */
-  public static Rank empty() {
-    return EMPTY;
-  }
-
-  @Override
-  public String id() {
-    return id;
-  }
-
-  /**
-   * Returns the priority.
-   */
-  public int priority() {
-    return priority;
-  }
-
-  /**
-   * Sets the priority.
+   * See {@link Map#remove(Object)}.
    *
-   * @param priority the priority
+   * @param string the string
    */
-  public void setPriority(int priority) {
-    this.priority = priority;
+  default Boolean removePermission(PeriodEscapedString string) {
+    final var permissions = permissions().orElse(null);
+    if (permissions == null) {
+      return null;
+    }
+    final var previous = permissions.remove(string);
+    setPermissions(permissions);
+    return previous;
   }
 
-  /**
-   * Returns the optional prefix.
-   */
-  public Optional<Component> prefix() {
-    return Optional.ofNullable(prefix);
-  }
+  Optional<Set<String>> inheritance();
+
+  void setInheritance(Set<String> inheritance);
 
   /**
-   * Sets the prefix.
+   * See {@link Set#add(Object)}.
    *
-   * @param prefix the prefix
+   * @param string the string
    */
-  public void setPrefix(Component prefix) {
-    this.prefix = prefix;
+  default boolean addInheritance(String string) {
+    var inheritance = inheritance().orElseGet(Sets::newConcurrentHashSet);
+    final var modified = inheritance.add(string);
+    if (modified) {
+      setInheritance(inheritance);
+    }
+    return modified;
   }
 
   /**
-   * Returns the optional name color.
-   */
-  public Optional<TextColor> nameColor() {
-    return Optional.ofNullable(nameColor);
-  }
-
-  /**
-   * Sets the name color.
+   * See {@link Set#remove(Object)}.
    *
-   * @param nameColor the name color
+   * @param string the string
    */
-  public void setNameColor(TextColor nameColor) {
-    this.nameColor = nameColor;
-  }
-
-  /**
-   * Returns the permissions.
-   */
-  public Map<PeriodEscapedString, Boolean> permissions() {
-    return permissions;
+  default boolean removeInheritance(String string) {
+    final var inheritance = inheritance().orElse(null);
+    if (inheritance == null) {
+      return false;
+    }
+    final var modified = inheritance.remove(string);
+    if (modified) {
+      setInheritance(inheritance);
+    }
+    return modified;
   }
 
   /**
@@ -112,19 +111,17 @@ public class Rank implements Document, Comparable<Rank> {
    *
    * @param key the key
    */
-  public Optional<Boolean> resolvePermission(String key) {
-    return Optional.ofNullable(permissions.get(new PeriodEscapedString(key)));
-  }
-
-  /**
-   * Returns the inheritance.
-   */
-  public Set<String> inheritance() {
-    return inheritance;
+  default Optional<Boolean> resolvePermission(String key) {
+    return permissions().map(permissions -> permissions.get(new PeriodEscapedString(key)));
   }
 
   @Override
-  public int compareTo(@NotNull Rank o) {
-    return Integer.compare(o.priority, priority);
+  default int compareTo(@NotNull Rank o) {
+    return Integer.compare(o.priority(), priority());
+  }
+
+  @Override
+  default Optional<Component> render(Theme theme) {
+    return prefix().flatMap(prefix -> prefix.render(theme));
   }
 }

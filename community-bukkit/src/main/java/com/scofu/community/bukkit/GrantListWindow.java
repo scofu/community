@@ -47,7 +47,7 @@ final class GrantListWindow extends PaginatedWindow {
   protected List<? extends ButtonBuilder> buttons(String search, int page) {
     return grants.stream()
         .map(grant -> Button.builder()
-            .withStaticItem(player().locale(), builder -> builder.ofType(
+            .withStaticItem(viewer(), builder -> builder.ofType(
                     grant.isRevoked() ? Material.RED_BANNER
                         : grant.hasExpired() ? Material.YELLOW_BANNER : Material.GREEN_BANNER)
                 .withName(itemText(Time.formatDate(grant.issuedAt(), ZoneId.systemDefault())).color(
@@ -57,7 +57,7 @@ final class GrantListWindow extends PaginatedWindow {
             .onClick(event -> {
               event.setCancelled(true);
               if (event.isShiftClick()) {
-                ui().bind(player(), new ConfirmWindow(text("Are you sure?")))
+                ui().bind(viewer().player(), new ConfirmWindow(text("Are you sure?")))
                     .result()
                     .completeOnTimeout(false, 1, TimeUnit.MINUTES)
                     .thenAccept(result -> {
@@ -65,28 +65,29 @@ final class GrantListWindow extends PaginatedWindow {
                         grantRepository.delete(grant.id());
                         grants.remove(grant);
                       }
-                      ui().bind(player(), GrantListWindow.this);
+                      ui().bind(viewer().player(), GrantListWindow.this);
                     });
                 return;
               }
               if (grant.isRevoked()) {
                 return;
               }
-              player().closeInventory();
-              player().sendMessage(newline().append(text("Enter reason:").append(newline())));
-              ui().bind(player(), new Chat())
+              viewer().player().closeInventory();
+              viewer().player()
+                  .sendMessage(newline().append(text("Enter reason:").append(newline())));
+              ui().bind(viewer().player(), new Chat())
                   .result()
-                  .thenAccept(
-                      reason -> ui().bind(player(), new ConfirmWindow(text("Are you sure?")))
-                          .result()
-                          .completeOnTimeout(false, 1, TimeUnit.MINUTES)
-                          .thenAccept(result -> {
-                            if (result) {
-                              grant.revoke(player().getUniqueId().toString(), reason);
-                              grantRepository.update(grant);
-                            }
-                            ui().bind(player(), GrantListWindow.this);
-                          }));
+                  .thenAccept(reason -> ui().bind(viewer().player(),
+                          new ConfirmWindow(text("Are you sure?")))
+                      .result()
+                      .completeOnTimeout(false, 1, TimeUnit.MINUTES)
+                      .thenAccept(result -> {
+                        if (result) {
+                          grant.revoke(viewer().player().getUniqueId().toString(), reason);
+                          grantRepository.update(grant);
+                        }
+                        ui().bind(viewer().player(), GrantListWindow.this);
+                      }));
             }))
         .toList();
   }
