@@ -285,31 +285,4 @@ final class RankCommands implements Feature {
 
   }
 
-  @Identified("setuserchatcolor")
-  @Permission("scofu.command.setuserchatcolor")
-  private void setuserchatcolor(Expansion<Player> source, Player target,
-      @Escapable String chatColor) {
-    final var player = source.orElseThrow();
-    final var user = userRepository.byId(target.getUniqueId().toString()).orElse(null);
-    if (user == null) {
-      player.sendMessage(translatable("Target player is not a user."));
-      return;
-    }
-    final var color = json.fromString(TextColor.class, "\"" + chatColor + "\"");
-    if (color == null) {
-      player.sendMessage(translatable("%s is not a valid hex or named color.", text(chatColor)));
-      return;
-    }
-    user.setChatColor(color);
-    player.sendMessage(translatable("Updating..."));
-    userRepository.update(user).whenComplete(((x, throwable) -> {
-      if (throwable != null) {
-        player.sendMessage(translatable("Error, something went wrong."));
-      } else {
-        player.sendMessage(translatable("Chat color of user %s set to %s!", text(target.getName()),
-            text(chatColor).color(color)));
-      }
-    }));
-  }
-
 }
