@@ -12,7 +12,6 @@ import com.scofu.design.bukkit.item.Button;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.FlowWindow;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -77,9 +76,8 @@ final class RankWindow extends FlowWindow {
                       viewer().player().sendMessage(text("Name taken."));
                       return;
                     }
-                    final var rank = lazyFactory.create(Rank.class,
-                        Map.of("_id", UUID.randomUUID().toString()));
-                    rank.setName(name);
+                    final var rank = lazyFactory.create(Rank.class, Rank::id,
+                        UUID.randomUUID().toString(), Rank::name, name);
                     design.bind(viewer().player(),
                         new RankEditWindow(design, rankRepository, lazyFactory, this, rank));
                   });
