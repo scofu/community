@@ -19,6 +19,7 @@ import com.scofu.community.bukkit.permission.WildcardPermissionChecker;
 import com.scofu.design.bukkit.Design;
 import com.scofu.network.document.Query;
 import com.scofu.text.ThemeRegistry;
+import com.scofu.text.json.TagFactory;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +33,7 @@ final class RankCommands implements Feature {
 
   private final Design design;
   private final LazyFactory lazyFactory;
+  private final TagFactory tagFactory;
   private final ThemeRegistry themeRegistry;
   private final RankRepository rankRepository;
   private final UserRepository userRepository;
@@ -39,11 +41,12 @@ final class RankCommands implements Feature {
   private final Json json;
 
   @Inject
-  RankCommands(Design design, LazyFactory lazyFactory, ThemeRegistry themeRegistry,
-      RankRepository rankRepository, UserRepository userRepository,
+  RankCommands(Design design, LazyFactory lazyFactory, TagFactory tagFactory,
+      ThemeRegistry themeRegistry, RankRepository rankRepository, UserRepository userRepository,
       WildcardPermissionChecker wildcardPermissionChecker, Json json) {
     this.design = design;
     this.lazyFactory = lazyFactory;
+    this.tagFactory = tagFactory;
     this.themeRegistry = themeRegistry;
     this.rankRepository = rankRepository;
     this.userRepository = userRepository;
@@ -55,7 +58,7 @@ final class RankCommands implements Feature {
   @Permission("scofu.command.ranks")
   private void ranks(Expansion<Player> source) {
     final var player = source.orElseThrow();
-    design.bind(player, new RankWindow(design, rankRepository, lazyFactory));
+    design.bind(player, new RankWindow(design, rankRepository, lazyFactory, tagFactory));
   }
 
   @Identified("deleteallranks")
@@ -227,39 +230,6 @@ final class RankCommands implements Feature {
   @Identified(value = "rank set", futile = true)
   @Permission("scofu.command.rank.set")
   private void set() {
-  }
-
-  @Identified("rank set prefix")
-  @Permission("scofu.command.rank.set.prefix")
-  private void prefix(Expansion<Player> source, Rank rank, @Escapable String prefix) {
-    final var player = source.orElseThrow();
-    //    final var component = Optional.ofNullable(json.fromString(Component.class, prefix))
-    //        .orElseGet(() -> text(prefix));
-    //    rank.setPrefix(component);
-    //    player.sendMessage(translatable("Updating..."));
-    //    rankRepository.update(rank).whenComplete(((x, throwable) -> {
-    //      if (throwable != null) {
-    //        player.sendMessage(translatable("Error, something went wrong."));
-    //      } else {
-    //        player.sendMessage(translatable("Prefix set to %s!", component));
-    //      }
-    //    }));
-  }
-
-  @Identified("rank set tagprefix")
-  @Permission("scofu.command.rank.set.tagprefix")
-  private void tagprefix(Expansion<Player> source, Rank rank, @Escapable String tag) {
-    final var player = source.orElseThrow();
-    //    final var component = Tags.parseTag(tag, false, 2).append(space());
-    //    rank.setPrefix(component);
-    //    player.sendMessage(translatable("Updating..."));
-    //    rankRepository.update(rank).whenComplete(((x, throwable) -> {
-    //      if (throwable != null) {
-    //        player.sendMessage(translatable("Error, something went wrong."));
-    //      } else {
-    //        player.sendMessage(translatable("Prefix set to %s!", component));
-    //      }
-    //    }));
   }
 
   @Identified("rank set priority")

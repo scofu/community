@@ -1,8 +1,8 @@
 package com.scofu.community;
 
-import static com.scofu.network.document.Filter.matchesText;
+import static com.scofu.network.document.Filter.matchesRegex;
 import static com.scofu.network.document.Filter.where;
-import static com.scofu.network.document.Text.search;
+import static com.scofu.network.document.Filter.withOptions;
 
 import com.google.common.cache.CacheBuilder;
 import com.scofu.common.json.Json;
@@ -36,7 +36,7 @@ public class RankRepository extends AbstractDocumentRepository<Rank> {
    */
   public CompletableFuture<Optional<Rank>> findByName(String name) {
     return find(Query.builder()
-        .filter(where("name", matchesText(search(name))))
+        .filter(where("name", matchesRegex(name).and(withOptions("i"))))
         .limitTo(1)
         .build()).thenApply(ranks -> ranks.values().stream().findFirst());
   }

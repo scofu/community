@@ -1,23 +1,23 @@
 package com.scofu.community.bukkit;
 
 import static net.kyori.adventure.text.Component.empty;
-import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
 
-import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.Rank;
-import com.scofu.community.RankPrefix;
 import com.scofu.community.RankRepository;
 import com.scofu.design.bukkit.Design;
-import com.scofu.design.bukkit.chat.Chat;
 import com.scofu.design.bukkit.item.Button;
 import com.scofu.design.bukkit.item.ButtonBuilder;
+import com.scofu.design.bukkit.sign.Sign;
+import com.scofu.design.bukkit.window.ColorPickerWindow;
 import com.scofu.design.bukkit.window.FlowWindow;
+import com.scofu.design.bukkit.window.TagCreatorWindow;
 import com.scofu.design.bukkit.window.Window;
 import com.scofu.text.Color;
-import com.scofu.text.Tags;
+import com.scofu.text.json.TagFactory;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
@@ -28,16 +28,16 @@ final class RankEditWindow extends FlowWindow {
 
   private final Design design;
   private final RankRepository rankRepository;
-  private final LazyFactory lazyFactory;
+  private final TagFactory tagFactory;
   private final Window parent;
   private final Rank rank;
 
-  public RankEditWindow(Design ui, RankRepository rankRepository, LazyFactory lazyFactory,
+  public RankEditWindow(Design ui, RankRepository rankRepository, TagFactory tagFactory,
       Window parent, Rank rank) {
     super(TickSpeed.NORMAL);
     this.rankRepository = rankRepository;
     this.design = ui;
-    this.lazyFactory = lazyFactory;
+    this.tagFactory = tagFactory;
     this.parent = parent;
     this.rank = rank;
   }
@@ -51,8 +51,8 @@ final class RankEditWindow extends FlowWindow {
   protected Optional<List<? extends ButtonBuilder>> header() {
     return Optional.of(rank).map(rank -> {
       return List.of(Button.builder()
-          .withItem(viewer(),
-              builder -> builder.ofType(Material.NAME_TAG).withName(text(rank.id())))
+          .withStaticItem(viewer(),
+              builder -> builder.ofType(Material.NAME_TAG).withName(text(rank.name())))
           .onClick(event -> event.setCancelled(true))
 
       );
@@ -71,11 +71,40 @@ final class RankEditWindow extends FlowWindow {
                 .withFooter(text("Click to rename!")))
             .onClick(event -> {
               event.setCancelled(true);
-              //TODO;
+              viewer().player().closeInventory();
+              design.bind(viewer().player(), new Sign() {
+                    @Override
+                    public void populate() {
+                      lines()[1] = text("^^^^^^");
+                      lines()[2] = text("Enter the");
+                      lines()[3] = text("rank name!");
+                    }
+                  })
+                  .result()
+                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                  .whenComplete((result, throwable) -> {
+                    if (result == null) {
+                      viewer().player().sendMessage(text("Timed out..."));
+                      return;
+                    }
+                    final var name = result[0];
+                    if (name == null || name.isEmpty() || name.isBlank()) {
+                      viewer().player().sendMessage(text("Invalid name."));
+                      design.bind(viewer().player(), RankEditWindow.this);
+                      return;
+                    }
+                    if (rankRepository.findByName(name).join().isPresent()) {
+                      design.bind(viewer().player(), RankEditWindow.this);
+                      viewer().player().sendMessage(text("Name taken."));
+                      return;
+                    }
+                    rank.setName(name);
+                    design.bind(viewer().player(), RankEditWindow.this);
+                  });
             }),
 
         Button.builder()
-            .withItem(viewer(), builder -> builder.ofType(Material.PIGLIN_BANNER_PATTERN)
+            .withStaticItem(viewer(), builder -> builder.ofType(Material.PIGLIN_BANNER_PATTERN)
                 .withName(text("Priorty"))
                 .withDescription(text("Increase or decrease the priority."))
                 .withTag(translatable("Current: %s", text(rank.priority())))
@@ -84,48 +113,40 @@ final class RankEditWindow extends FlowWindow {
             .onClick(event -> {
               event.setCancelled(true);
               if (event.isLeftClick()) {
-                rank.setPriority(rank.priority() + 1);
+                rank.incrementPriority();
               } else if (event.isRightClick()) {
-                rank.setPriority(rank.priority() - 1);
+                rank.decrementPriority();
               }
+              design.bind(viewer().player(), this);
             }),
 
         Button.builder()
-            .withItem(viewer(), builder -> builder.ofType(Material.PIGLIN_BANNER_PATTERN)
-                .withName(text("Prefix"))
-                .withDescription(text("Change the prefix."))
-                .withTag(translatable("Current: %s", rank.prefix()
-                    .flatMap(prefix -> prefix.render(viewer().theme()))
-                    .orElse(empty())))
-                .withFooter(text("Click to set the prefix!")))
+            .withStaticItem(viewer(), builder -> builder.ofType(Material.PIGLIN_BANNER_PATTERN)
+                .withName(text("Tag"))
+                .withDescription(text("Change the tag."))
+                .withTag(translatable("Current: %s", rank.render(viewer().theme()).orElse(empty())))
+                .withFooter(text("Click to set the tag!")))
             .onClick(event -> {
               event.setCancelled(true);
               viewer().player().closeInventory();
-              viewer().player()
-                  .sendMessage(newline().append(text("Enter prefix:").append(newline())));
-              design.bind(viewer().player(), new Chat())
+              design.bind(viewer().player(), new TagCreatorWindow(rank.tag()
+                      .orElseGet(() -> tagFactory.create(rank.name().toLowerCase(Locale.ROOT),
+                          Color.BRIGHT_WHITE, Color.BLACK)), design, tagFactory))
                   .result()
-                  .completeOnTimeout(null, 1, TimeUnit.MINUTES)
-                  .thenAccept(result -> {
-                    if (result == null || result.isEmpty() || result.isBlank()) {
-                      design.bind(viewer().player(), this);
+                  .completeOnTimeout(null, 20, TimeUnit.MINUTES)
+                  .thenAccept(tag -> {
+                    if (tag == null) {
+                      viewer().player().sendMessage(text("Timed out."));
+                      design.bind(viewer().player(), RankEditWindow.this);
                       return;
                     }
-                    try {
-                      final var prefix = lazyFactory.create(RankPrefix.class);
-                      prefix.setTag(
-                          Tags.tag(result, NamedTextColor.WHITE, NamedTextColor.BLACK, false, 2));
-                      rank.setPrefix(prefix);
-                    } catch (Exception e) {
-                      e.printStackTrace();
-                      viewer().player().sendMessage(text("Error parsing tag."));
-                    }
-                    design.bind(viewer().player(), this);
+                    rank.setTag(tag);
+                    design.bind(viewer().player(), RankEditWindow.this);
                   });
             }),
 
         Button.builder()
-            .withItem(viewer(), builder -> builder.ofType(Material.WHITE_DYE)
+            .withStaticItem(viewer(), builder -> builder.ofType(Material.WHITE_DYE)
                 .withName(text("Name color"))
                 .withDescription(text("Change the name color."))
                 .withTag(translatable("Current: %s", rank.nameColor()
@@ -134,25 +155,18 @@ final class RankEditWindow extends FlowWindow {
                 .withFooter(text("Click to set the name color!")))
             .onClick(event -> {
               event.setCancelled(true);
-              viewer().player().closeInventory();
-              viewer().player()
-                  .sendMessage(newline().append(text("Enter name color:").append(newline())));
-              design.bind(viewer().player(), new Chat())
+              design.bind(viewer().player(), new ColorPickerWindow(design))
                   .result()
-                  .completeOnTimeout(null, 1, TimeUnit.MINUTES)
-                  .thenAccept(result -> {
-                    if (result == null || result.isEmpty() || result.isBlank()) {
-                      design.bind(viewer().player(), this);
+                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                  .thenAccept(color -> {
+                    if (color == null) {
+                      viewer().player().sendMessage(text("Timed out."));
+
+                      design.bind(viewer().player(), RankEditWindow.this);
                       return;
                     }
-                    try {
-                      final var color = Color.byName(result).orElseThrow();
-                      rank.setNameColor(color);
-                    } catch (Exception e) {
-                      e.printStackTrace();
-                      viewer().player().sendMessage(text("Error parsing color."));
-                    }
-                    design.bind(viewer().player(), this);
+                    rank.setNameColor(color);
+                    design.bind(viewer().player(), RankEditWindow.this);
                   });
             }),
 

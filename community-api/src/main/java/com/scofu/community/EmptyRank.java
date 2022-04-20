@@ -3,6 +3,7 @@ package com.scofu.community;
 import com.jsoniter.any.Any;
 import com.scofu.common.json.PeriodEscapedString;
 import com.scofu.text.Color;
+import com.scofu.text.json.Tag;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -22,17 +23,27 @@ final class EmptyRank implements Rank {
   }
 
   @Override
-  public Optional<RankPrefix> prefix() {
+  public Optional<Tag> tag() {
     return Optional.empty();
   }
 
   @Override
-  public void setPrefix(RankPrefix prefix) {
+  public void setTag(Tag tag) {
 
   }
 
   @Override
   public int priority() {
+    return 0;
+  }
+
+  @Override
+  public int incrementPriority() {
+    return 0;
+  }
+
+  @Override
+  public int decrementPriority() {
     return 0;
   }
 

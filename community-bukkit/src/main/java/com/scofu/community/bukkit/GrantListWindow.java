@@ -57,7 +57,7 @@ final class GrantListWindow extends PaginatedWindow {
             .onClick(event -> {
               event.setCancelled(true);
               if (event.isShiftClick()) {
-                ui().bind(viewer().player(), new ConfirmWindow(text("Are you sure?")))
+                design().bind(viewer().player(), new ConfirmWindow(text("Are you sure?")))
                     .result()
                     .completeOnTimeout(false, 1, TimeUnit.MINUTES)
                     .thenAccept(result -> {
@@ -65,7 +65,7 @@ final class GrantListWindow extends PaginatedWindow {
                         grantRepository.delete(grant.id());
                         grants.remove(grant);
                       }
-                      ui().bind(viewer().player(), GrantListWindow.this);
+                      design().bind(viewer().player(), GrantListWindow.this);
                     });
                 return;
               }
@@ -75,9 +75,9 @@ final class GrantListWindow extends PaginatedWindow {
               viewer().player().closeInventory();
               viewer().player()
                   .sendMessage(newline().append(text("Enter reason:").append(newline())));
-              ui().bind(viewer().player(), new Chat())
+              design().bind(viewer().player(), new Chat())
                   .result()
-                  .thenAccept(reason -> ui().bind(viewer().player(),
+                  .thenAccept(reason -> design().bind(viewer().player(),
                           new ConfirmWindow(text("Are you sure?")))
                       .result()
                       .completeOnTimeout(false, 1, TimeUnit.MINUTES)
@@ -86,7 +86,7 @@ final class GrantListWindow extends PaginatedWindow {
                           grant.revoke(viewer().player().getUniqueId().toString(), reason);
                           grantRepository.update(grant);
                         }
-                        ui().bind(viewer().player(), GrantListWindow.this);
+                        design().bind(viewer().player(), GrantListWindow.this);
                       }));
             }))
         .toList();

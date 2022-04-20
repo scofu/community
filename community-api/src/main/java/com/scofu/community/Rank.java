@@ -8,6 +8,7 @@ import com.scofu.network.document.Document;
 import com.scofu.text.Color;
 import com.scofu.text.Renderable;
 import com.scofu.text.Theme;
+import com.scofu.text.json.Tag;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -27,11 +28,15 @@ public interface Rank extends Lazy, Document, Renderable, Comparable<Rank> {
 
   void setName(String name);
 
-  Optional<RankPrefix> prefix();
+  Optional<Tag> tag();
 
-  void setPrefix(RankPrefix prefix);
+  void setTag(Tag tag);
 
   int priority();
+
+  int incrementPriority();
+
+  int decrementPriority();
 
   void setPriority(int priority);
 
@@ -122,6 +127,6 @@ public interface Rank extends Lazy, Document, Renderable, Comparable<Rank> {
 
   @Override
   default Optional<Component> render(Theme theme) {
-    return prefix().flatMap(prefix -> prefix.render(theme));
+    return tag().flatMap(tag -> tag.render(theme));
   }
 }
