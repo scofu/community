@@ -15,8 +15,9 @@ import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
 import com.scofu.command.validation.Permission;
 import com.scofu.common.inject.Feature;
-import com.scofu.community.Stats;
-import com.scofu.community.StatsRepository;
+import com.scofu.common.json.lazy.LazyFactory;
+import com.scofu.community.GenericStats;
+import com.scofu.community.GenericStatsRepository;
 import com.scofu.design.bukkit.Container.TickSpeed;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.hologram.TextHologram;
@@ -48,62 +49,51 @@ import org.bukkit.plugin.Plugin;
 final class StatsCommands implements Feature {
 
   private final Plugin plugin;
-  private final StatsRepository statsRepository;
+  private final GenericStatsRepository genericStatsRepository;
+  private final LazyFactory lazyFactory;
   private final ProfileRepository profileRepository;
-  private final Book<Stats> coinsLeaderboard;
-  private final Book<Stats> coinsLeaderboardTest;
+  private final Book<GenericStats> coinsLeaderboard;
+  private final Book<GenericStats> coinsLeaderboardTest;
   private final Design design;
   private final TagFactory tagFactory;
 
   @Inject
-  StatsCommands(Plugin plugin, StatsRepository statsRepository, ProfileRepository profileRepository,
-      Design design, TagFactory tagFactory) {
+  StatsCommands(Plugin plugin, GenericStatsRepository genericStatsRepository,
+      LazyFactory lazyFactory, ProfileRepository profileRepository, Design design,
+      TagFactory tagFactory) {
     this.plugin = plugin;
-    this.statsRepository = statsRepository;
-    coinsLeaderboard = Book.of(Query.builder()
-        .filter(empty())
-        .sort(by(Stats.field("coins", Long.class), Order.HIGHEST_TO_LOWEST))
-        .build(), PaginatedWindow.ITEMS_PER_PAGE, statsRepository, Duration.ofSeconds(60));
-    coinsLeaderboardTest = Book.of(Query.builder()
-        .filter(empty())
-        .sort(by(Stats.field("coins", Long.class), Order.HIGHEST_TO_LOWEST))
-        .build(), 10, statsRepository, Duration.ofSeconds(60));
+    this.genericStatsRepository = genericStatsRepository;
+    coinsLeaderboard = Book.of(
+        Query.builder().filter(empty()).sort(by("coins", Order.HIGHEST_TO_LOWEST)).build(),
+        PaginatedWindow.ITEMS_PER_PAGE, genericStatsRepository, Duration.ofSeconds(60));
+    coinsLeaderboardTest = Book.of(
+        Query.builder().filter(empty()).sort(by("coins", Order.HIGHEST_TO_LOWEST)).build(), 10,
+        genericStatsRepository, Duration.ofSeconds(60));
+    this.lazyFactory = lazyFactory;
     this.profileRepository = profileRepository;
     this.design = design;
     this.tagFactory = tagFactory;
   }
 
-  @Identified("stats")
-  @Permission("scofu.command.stats")
-  private void stats(Expansion<Player> source, Player target, String category) {
+  @Identified("genericstats")
+  @Permission("scofu.command.genericstats")
+  private void stats(Expansion<Player> source, Player target) {
     final var player = source.orElseThrow();
     player.sendMessage(text("Loading stats...").color(NamedTextColor.GRAY));
-    statsRepository.byId(Stats.id(target.getUniqueId().toString(), category))
-        .ifPresentOrElse(stats -> {
-          var component = text(
-              "Viewing " + stats.references().size() + " stat" + (stats.references().size() == 1
-                  ? "" : "s") + ":").append(newline())
-              .append(stats.references()
-                  .entrySet()
-                  .stream()
-                  .map(entry -> text(entry.getKey() + ": ").color(NamedTextColor.WHITE)
-                      .append(text(
-                          entry.getValue().value() + " (" + entry.getValue().type() + ")").color(
-                          NamedTextColor.GREEN)))
-                  .collect(toComponent(newline())));
-          player.sendMessage(component);
-        }, () -> {
-          player.sendMessage(text("No stats found."));
-        });
+    genericStatsRepository.byId(target.getUniqueId().toString())
+        .ifPresentOrElse(
+            stats -> player.sendMessage(translatable("Coins: %s", text(stats.coins()))),
+            () -> player.sendMessage(text("No stats found.")));
   }
 
   @Identified("setcoins")
   private void setcoins(Expansion<Player> source, Player target, int coins) {
     final var player = source.orElseThrow();
-    final var statsId = Stats.id(target.getUniqueId().toString(), "generic");
-    final var stats = statsRepository.byId(statsId).orElse(new Stats(statsId));
-    stats.setLong("coins", coins);
-    statsRepository.update(stats).whenComplete(((x, throwable) -> {
+    final var stats = genericStatsRepository.byId(target.getUniqueId().toString())
+        .orElseGet(() -> lazyFactory.create(GenericStats.class, GenericStats::id,
+            target.getUniqueId().toString()));
+    stats.setCoins(coins);
+    genericStatsRepository.update(stats).whenComplete(((x, throwable) -> {
       if (throwable != null) {
         player.sendMessage(translatable("Error, something went wrong."));
       } else {
@@ -153,10 +143,9 @@ final class StatsCommands implements Feature {
             page.documents()
                 .forEach((stats, placement) -> lines.add(
                     text(placement + ". ").color(NamedTextColor.YELLOW)
-                        .append(text(stats.playerId()).color(NamedTextColor.WHITE)
+                        .append(text(stats.id()).color(NamedTextColor.WHITE)
                             .append(text(" - ").color(NamedTextColor.GRAY)
-                                .append(text(stats.getLong("coins").orElse(0L) + "").color(
-                                    NamedTextColor.YELLOW))))));
+                                .append(text(stats.coins() + "").color(NamedTextColor.YELLOW))))));
             lines.add(Component.empty());
             lines.add(text(
                 "Refreshes in " + coinsLeaderboardTest.durationUntilNextRefresh().toSeconds()
@@ -208,9 +197,9 @@ final class StatsCommands implements Feature {
     final var player = source.orElseThrow();
     player.sendMessage(text("Working..."));
     final var futures = IntStream.range(0, 125)
-        .mapToObj(i -> new Stats(Stats.id("random" + i, "generic")))
-        .peek(stats -> stats.setLong("coins", ThreadLocalRandom.current().nextInt(1, 10_000)))
-        .map(statsRepository::update)
+        .mapToObj(i -> lazyFactory.create(GenericStats.class, GenericStats::id, "random" + i))
+        .peek(stats -> stats.setCoins(ThreadLocalRandom.current().nextInt(1, 10_000)))
+        .map(genericStatsRepository::update)
         .toArray(CompletableFuture[]::new);
     allOf(futures).whenComplete(((x, throwable) -> {
       if (throwable != null) {
@@ -234,11 +223,12 @@ final class StatsCommands implements Feature {
   private void coinsLeaderboard(Expansion<Player> source, Optional<Integer> page) {
     final var player = source.orElseThrow();
     if (true) {
-      design.bind(player, new CoinsLeaderboardWindow(design, coinsLeaderboard, statsRepository));
+      design.bind(player,
+          new CoinsLeaderboardWindow(design, coinsLeaderboard, genericStatsRepository));
       return;
     }
 
-    final var total = statsRepository.count(
+    final var total = genericStatsRepository.count(
         Query.builder().filter(where("references.coins", exists(true))).build()).join();
     final var pages = (int) Math.ceil(total / 10D);
     final int actualPage = page.orElse(1);
@@ -255,9 +245,9 @@ final class StatsCommands implements Feature {
                 .stream()
                 .map(entry -> text(placement.getAndIncrement() + ". ").color(NamedTextColor.YELLOW)
                     .append(text(entry.getValue() + ". ").color(NamedTextColor.YELLOW)
-                        .append(text(entry.getKey().playerId()).color(NamedTextColor.WHITE)))
+                        .append(text(entry.getKey().id()).color(NamedTextColor.WHITE)))
                     .append(text(" - ").color(NamedTextColor.GRAY))
-                    .append(text(entry.getKey().getLong("coins").orElse(0L))))
+                    .append(text(entry.getKey().coins())))
                 .collect(toComponent(newline())))
             .append(newline())
             .append(text(actualPage > 1 ? "[Previous page] " : "").clickEvent(

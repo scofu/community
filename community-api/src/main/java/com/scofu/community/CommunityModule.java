@@ -15,6 +15,6 @@ public class CommunityModule extends AbstractFeatureModule {
     bind(RankRepository.class).in(Scopes.SINGLETON);
     bind(UserRepository.class).in(Scopes.SINGLETON);
     bind(GrantRepository.class).in(Scopes.SINGLETON);
-    bind(StatsRepository.class).in(Scopes.SINGLETON);
+    bind(GenericStatsRepository.class).in(Scopes.SINGLETON);
   }
 }

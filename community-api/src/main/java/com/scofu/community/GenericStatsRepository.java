@@ -10,14 +10,14 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 /**
- * Stats repository.
+ * Generic stats repository.
  */
-public class StatsRepository extends AbstractDocumentRepository<Stats> {
+public class GenericStatsRepository extends AbstractDocumentRepository<GenericStats> {
 
   @Inject
-  StatsRepository(MessageQueue messageQueue, MessageFlow messageFlow, Json json) {
-    super(messageQueue, messageFlow, Stats.class, json, RepositoryConfiguration.builder()
-        .withCollection("scofu.stats")
+  GenericStatsRepository(MessageQueue messageQueue, MessageFlow messageFlow, Json json) {
+    super(messageQueue, messageFlow, GenericStats.class, json, RepositoryConfiguration.builder()
+        .withCollection("scofu.generic_stats")
         .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
         .build());
   }
