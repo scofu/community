@@ -13,7 +13,6 @@ import com.scofu.community.UserRepository;
 import com.scofu.community.bukkit.event.UserLoginEvent;
 import java.net.InetAddress;
 import java.time.Instant;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.bukkit.event.EventHandler;
@@ -52,7 +51,7 @@ final class UserListener implements Feature, Listener {
     final var id = event.getPlayer().getUniqueId().toString();
     final var user = userRepository.byId(id)
         .orElseGet(
-            () -> lazyFactory.create(User.class, Map.of("_id", id, "firstJoinAt", Instant.now())));
+            () -> lazyFactory.create(User.class, User::id, id, User::firstJoinAt, Instant.now()));
     Session session = null;
     if (user.hasSession()) {
       session = user.session().orElseThrow();
