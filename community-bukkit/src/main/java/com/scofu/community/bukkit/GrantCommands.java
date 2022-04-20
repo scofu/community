@@ -10,6 +10,7 @@ import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
 import com.scofu.command.validation.Permission;
 import com.scofu.common.inject.Feature;
+import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.Grant;
 import com.scofu.community.GrantRepository;
 import com.scofu.community.Rank;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,11 +48,13 @@ final class GrantCommands implements Listener, Feature {
 
   private final GrantRepository grantRepository;
   private final Design design;
+  private final LazyFactory lazyFactory;
 
   @Inject
-  GrantCommands(GrantRepository grantRepository, Design design) {
+  GrantCommands(GrantRepository grantRepository, Design design, LazyFactory lazyFactory) {
     this.grantRepository = grantRepository;
     this.design = design;
+    this.lazyFactory = lazyFactory;
   }
 
   //  @Identified("emojis")
@@ -102,9 +106,20 @@ final class GrantCommands implements Listener, Feature {
   private void grant(Expansion<Player> source, Player target, Rank rank, String reason,
       Optional<Duration> duration) {
     final var player = source.orElseThrow();
-    final var grant = new Grant(UUID.randomUUID().toString(), Instant.now(),
-        player.getUniqueId().toString(), reason, target.getUniqueId().toString(), rank.id(),
-        duration.map(x -> Instant.now().plus(x)).orElse(null));
+    final var expireAt = duration.map(x -> Instant.now().plus(x)).orElse(null);
+    final Grant grant;
+    if (expireAt == null) {
+      grant = lazyFactory.create(Grant.class,
+          Map.of(Grant::id, UUID.randomUUID().toString(), Grant::issuedAt, Instant.now(),
+              Grant::issuerId, player.getUniqueId().toString(), Grant::reason, reason,
+              Grant::userId, target.getUniqueId().toString(), Grant::rankId, rank.id()));
+    } else {
+      grant = lazyFactory.create(Grant.class,
+          Map.of(Grant::id, UUID.randomUUID().toString(), Grant::issuedAt, Instant.now(),
+              Grant::issuerId, player.getUniqueId().toString(), Grant::reason, reason,
+              Grant::userId, target.getUniqueId().toString(), Grant::rankId, rank.id(),
+              Grant::expireAt, expireAt));
+    }
     player.sendMessage(translatable("Updating...").color(NamedTextColor.GRAY));
     grantRepository.update(grant).whenComplete(((x, throwable) -> {
       if (throwable != null) {
