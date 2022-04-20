@@ -21,4 +21,8 @@ public interface User extends Lazy, Document {
   void setSession(Session session);
 
   boolean hasSession();
+
+  Optional<Time> time();
+
+  void setTime(Time time);
 }

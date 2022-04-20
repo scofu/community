@@ -102,11 +102,6 @@ final class StatsCommands implements Feature {
     }));
   }
 
-  @Identified("timetest")
-  private void timetest(Expansion<Player> source, Time time) {
-    source.orElseThrow().setPlayerTime(time.time(), false);
-  }
-
   @Identified("holotest")
   private void holotest(Expansion<Player> source) {
     final var player = source.orElseThrow();
