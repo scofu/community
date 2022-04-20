@@ -1,6 +1,6 @@
 package com.scofu.community;
 
-import com.jsoniter.annotation.JsonCreator;
+import com.scofu.common.json.lazy.Lazy;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -8,106 +8,31 @@ import java.util.Optional;
 /**
  * A session.
  */
-public class Session {
+public interface Session extends Lazy {
 
-  private final Instant startedAt;
-  private Instant stoppedAt;
-  private String networkId;
-  private String instanceId;
-  private Grant grant;
-
-  /**
-   * Constructs a new session.
-   *
-   * @param startedAt the started at
-   */
-  @JsonCreator
-  public Session(Instant startedAt) {
-    this.startedAt = startedAt;
+  default Duration playtime() {
+    return Duration.between(startedAt(), stoppedAt().orElseGet(Instant::now));
   }
 
-  /**
-   * Returns the playtime.
-   */
-  public Duration playtime() {
-    return Duration.between(startedAt, stoppedAt().orElseGet(Instant::now));
+  default boolean isActive() {
+    return stoppedAt().isEmpty();
   }
 
-  /**
-   * Returns whether this is active or not.
-   */
-  public boolean isActive() {
-    return stoppedAt != null;
-  }
+  Instant startedAt();
 
-  /**
-   * Returns the started at.
-   */
-  public Instant startedAt() {
-    return startedAt;
-  }
+  Optional<Instant> stoppedAt();
 
-  /**
-   * Returns the optional stopped at.
-   */
-  public Optional<Instant> stoppedAt() {
-    return Optional.ofNullable(stoppedAt);
-  }
+  void setStoppedAt(Instant stoppedAt);
 
-  /**
-   * Sets the stopped at.
-   *
-   * @param stoppedAt the stopped at
-   */
-  public void setStoppedAt(Instant stoppedAt) {
-    this.stoppedAt = stoppedAt;
-  }
+  Optional<String> networkId();
 
-  /**
-   * Returns the optional network id.
-   */
-  public Optional<String> networkId() {
-    return Optional.ofNullable(networkId);
-  }
+  void setNetworkId(String networkId);
 
-  /**
-   * Sets the network id.
-   *
-   * @param networkId the network id
-   */
-  public void setNetworkId(String networkId) {
-    this.networkId = networkId;
-  }
+  Optional<String> instanceId();
 
-  /**
-   * Returns the optional instance id.
-   */
-  public Optional<String> instanceId() {
-    return Optional.ofNullable(instanceId);
-  }
+  void setInstanceId(String instanceId);
 
-  /**
-   * Sets the instance id.
-   *
-   * @param instanceId the instance id
-   */
-  public void setInstanceId(String instanceId) {
-    this.instanceId = instanceId;
-  }
+  Optional<Grant> grant();
 
-  /**
-   * Returns the optional grant.
-   */
-  public Optional<Grant> grant() {
-    return Optional.ofNullable(grant);
-  }
-
-  /**
-   * Sets the grant.
-   *
-   * @param grant the grant
-   */
-  public void setGrant(Grant grant) {
-    this.grant = grant;
-  }
+  void setGrant(Grant grant);
 }

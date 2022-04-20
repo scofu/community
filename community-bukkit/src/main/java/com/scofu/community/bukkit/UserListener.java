@@ -60,7 +60,7 @@ final class UserListener implements Feature, Listener {
       }
     }
     if (session == null) {
-      session = new Session(Instant.now());
+      session = lazyFactory.create(Session.class, Session::startedAt, Instant.now());
     }
     session.setInstanceId(localHost.getHostName());
     grantRepository.byUserId(user.id()).join().findFirst().ifPresent(session::setGrant);
