@@ -33,6 +33,8 @@ public class CommunityBukkitModule extends AbstractFeatureModule {
     bindFeature(StatsCommands.class).in(Scopes.SINGLETON);
     bindFeature(TimeCommand.class).in(Scopes.SINGLETON);
     bindFeature(TimeListener.class).in(Scopes.SINGLETON);
+    bindFeature(ThemeCommand.class).in(Scopes.SINGLETON);
+    bindFeature(ThemeListener.class).in(Scopes.SINGLETON);
     bindFeature(GenericStatsListener.class).in(Scopes.SINGLETON);
     bindFeatureInstance(new BundledTranslationProvider(Locale.US, "community-bukkit_en_US",
         CommunityBukkitModule.class.getClassLoader()));
