@@ -41,9 +41,8 @@ public class PlayerRenderer implements Renderer<Player> {
           final var coloredName = rank.nameColor()
               .map(color -> color.render(theme, name))
               .orElse(name);
-          return rank.prefix()
-              .flatMap(prefix -> prefix.render(theme))
-              .<Component>map(prefix -> translatable("%s %s", prefix, coloredName))
+          return rank.render(theme)
+              .<Component>map(tag -> translatable("%s %s", tag, coloredName))
               .orElse(coloredName);
         })
         .orElse(name);
