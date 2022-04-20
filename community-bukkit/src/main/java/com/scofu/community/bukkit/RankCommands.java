@@ -26,7 +26,6 @@ import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 
 final class RankCommands implements Feature {
