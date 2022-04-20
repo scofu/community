@@ -228,19 +228,4 @@ final class GrantCommands implements Listener, Feature {
     player.sendMessage(space());
   }
 
-  @Identified("tabtest")
-  private void tabtest(Expansion<Player> source) {
-    final var player = source.orElseThrow();
-    design.bind(player, new Tablist(TickSpeed.NORMAL)).use(entries -> {
-      int slot = 0;
-      for (Player onlinePlayer : player.getServer().getOnlinePlayers()) {
-        entries[slot++] = TablistEntry.player(onlinePlayer);
-      }
-      slot++;
-      entries[slot] = TablistEntry.of(
-          text("Din ping: ").append(text(player.getPing()).color(NamedTextColor.GREEN)),
-          player.getPing());
-    });
-  }
-
 }
