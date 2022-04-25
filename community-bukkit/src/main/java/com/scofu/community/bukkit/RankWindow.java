@@ -1,5 +1,6 @@
 package com.scofu.community.bukkit;
 
+import static com.scofu.text.ContextualizedComponent.error;
 import static net.kyori.adventure.text.Component.text;
 
 import com.scofu.common.json.lazy.LazyFactory;
@@ -66,8 +67,10 @@ final class RankWindow extends FlowWindow {
               design.bind(viewer().player(),
                   Sign.builder().withInput(text("Enter the rank name!")).onInput(result -> {
                     if (rankRepository.findByName(result).join().isPresent()) {
+                      error().text("A rank with the name %s already exists.", result)
+                          .prefixed()
+                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
                       design.bind(viewer().player(), this);
-                      viewer().player().sendMessage(text("Name taken."));
                       return;
                     }
                     final var rank = lazyFactory.create(Rank.class, Rank::id,

@@ -1,7 +1,6 @@
 package com.scofu.community.bukkit;
 
-import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.Component.translatable;
+import static com.scofu.text.ContextualizedComponent.info;
 
 import com.google.inject.Inject;
 import com.scofu.command.model.Expansion;
@@ -27,10 +26,9 @@ final class TimeCommand implements Feature {
   private void time(Expansion<Player> source, Time time) {
     final var player = source.orElseThrow();
     player.setPlayerTime(time.ticks(), false);
-    final var message = themeRegistry.byIdentified(player)
-        .render(theme -> translatable("Time set to %s.",
-            text(time.name()).color(theme.brightYellow())).color(theme.brightGreen()));
-    player.sendMessage(message);
+    info().text("Time set to %s.", time.name())
+        .prefixed()
+        .renderTo(themeRegistry.byIdentified(player), player::sendMessage);
     userRepository.byId(player.getUniqueId().toString()).ifPresent(user -> {
       user.setTime(time);
       userRepository.update(user);

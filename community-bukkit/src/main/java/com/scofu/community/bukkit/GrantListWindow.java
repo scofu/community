@@ -1,7 +1,7 @@
 package com.scofu.community.bukkit;
 
 import static com.scofu.design.bukkit.item.ItemTextComponent.itemText;
-import static net.kyori.adventure.text.Component.newline;
+import static com.scofu.text.ContextualizedComponent.info;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
@@ -73,8 +73,9 @@ final class GrantListWindow extends PaginatedWindow {
                 return;
               }
               viewer().player().closeInventory();
-              viewer().player()
-                  .sendMessage(newline().append(text("Enter reason:").append(newline())));
+              info().text("Please enter reason:")
+                  .prefixed()
+                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
               design().bind(viewer().player(), new Chat())
                   .result()
                   .thenAccept(reason -> design().bind(viewer().player(),

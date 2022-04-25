@@ -4,6 +4,7 @@ import static com.scofu.network.document.Filter.empty;
 import static com.scofu.network.document.Filter.exists;
 import static com.scofu.network.document.Filter.where;
 import static com.scofu.network.document.Sort.by;
+import static com.scofu.text.ContextualizedComponent.debug;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
@@ -173,7 +174,9 @@ final class StatsCommands implements Feature {
                       profile.textures().raw().signature()));
             });
             onClick(() -> {
-              player.sendMessage(text("bing bong").color(NamedTextColor.LIGHT_PURPLE));
+              debug().text("bing bong")
+                  .prefixed()
+                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
             });
           }
         });

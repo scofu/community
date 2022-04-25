@@ -1,5 +1,6 @@
 package com.scofu.community.bukkit;
 
+import static com.scofu.text.ContextualizedComponent.error;
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
@@ -75,8 +76,10 @@ final class RankEditWindow extends FlowWindow {
               design.bind(viewer().player(),
                   Sign.builder().withInput(text("Enter the rank name!")).onInput(result -> {
                     if (rankRepository.findByName(result).join().isPresent()) {
+                      error().text("A rank with the name %s already exists.", result)
+                          .prefixed()
+                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
                       design.bind(viewer().player(), this);
-                      viewer().player().sendMessage(text("Name taken."));
                       return;
                     }
                     rank.setName(result);
@@ -117,12 +120,14 @@ final class RankEditWindow extends FlowWindow {
                   .completeOnTimeout(null, 20, TimeUnit.MINUTES)
                   .thenAccept(tag -> {
                     if (tag == null) {
-                      viewer().player().sendMessage(text("Timed out."));
-                      design.bind(viewer().player(), RankEditWindow.this);
+                      error().text("Timed out.")
+                          .prefixed()
+                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                      design.bind(viewer().player(), this);
                       return;
                     }
                     rank.setTag(tag);
-                    design.bind(viewer().player(), RankEditWindow.this);
+                    design.bind(viewer().player(), this);
                   });
             }),
 
@@ -141,13 +146,14 @@ final class RankEditWindow extends FlowWindow {
                   .completeOnTimeout(null, 10, TimeUnit.MINUTES)
                   .thenAccept(color -> {
                     if (color == null) {
-                      viewer().player().sendMessage(text("Timed out."));
-
-                      design.bind(viewer().player(), RankEditWindow.this);
+                      error().text("Timed out.")
+                          .prefixed()
+                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                      design.bind(viewer().player(), this);
                       return;
                     }
                     rank.setNameColor(color);
-                    design.bind(viewer().player(), RankEditWindow.this);
+                    design.bind(viewer().player(), this);
                   });
             }),
 

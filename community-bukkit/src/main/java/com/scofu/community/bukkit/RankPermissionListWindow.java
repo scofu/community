@@ -1,6 +1,7 @@
 package com.scofu.community.bukkit;
 
-import static net.kyori.adventure.text.Component.newline;
+import static com.scofu.text.ContextualizedComponent.error;
+import static com.scofu.text.ContextualizedComponent.info;
 import static net.kyori.adventure.text.Component.text;
 
 import com.scofu.common.json.PeriodEscapedString;
@@ -40,19 +41,22 @@ final class RankPermissionListWindow extends PaginatedWindow {
         .onClick(event -> {
           event.setCancelled(true);
           viewer().player().closeInventory();
-          viewer().player()
-              .sendMessage(newline().append(text("Enter permission:").append(newline())));
+          info().text("Please enter permission:")
+              .prefixed()
+              .renderTo(viewer().theme(), viewer().player()::sendMessage);
           design().bind(viewer().player(), new Chat())
               .result()
               .completeOnTimeout(null, 10, TimeUnit.MINUTES)
               .whenComplete(((result, throwable) -> {
                 if (result == null) {
-                  viewer().player().sendMessage(text("Timed out."));
-                  design().bind(viewer().player(), RankPermissionListWindow.this);
+                  error().text("Timed out.")
+                      .prefixed()
+                      .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                  design().bind(viewer().player(), this);
                   return;
                 }
                 rank.addPermission(new PeriodEscapedString(result), true);
-                design().bind(viewer().player(), RankPermissionListWindow.this);
+                design().bind(viewer().player(), this);
               }));
         })
         .build());
