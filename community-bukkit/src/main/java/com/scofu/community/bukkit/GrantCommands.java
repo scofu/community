@@ -14,12 +14,9 @@ import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.Grant;
 import com.scofu.community.GrantRepository;
 import com.scofu.community.Rank;
-import com.scofu.design.bukkit.Container.TickSpeed;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.item.Button;
 import com.scofu.design.bukkit.item.ButtonBuilder;
-import com.scofu.design.bukkit.tablist.Tablist;
-import com.scofu.design.bukkit.tablist.TablistEntry;
 import com.scofu.design.bukkit.window.PaginatedWindow;
 import java.time.Duration;
 import java.time.Instant;
@@ -70,11 +67,6 @@ final class GrantCommands implements Listener, Feature {
   //            null));
   //    ((CraftPlayer) player).getHandle().networkManager.a(packet);
   //  }
-
-  @Identified("console")
-  private void console(String command) {
-    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command);
-  }
 
   @Identified("grants")
   @Permission("scofu.command.grants")
