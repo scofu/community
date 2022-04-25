@@ -78,7 +78,7 @@ final class CoinsLeaderboardWindow extends PaginatedWindow {
               .id()
               .toLowerCase(Locale.ROOT)
               .contains(search.toLowerCase(Locale.ROOT)))
-          .map(entry -> createButton(entry.getKey(), entry.getValue()))
+          .map(entry -> toButton(entry.getKey(), entry.getValue()))
           .toList();
     }
     final var placement = new AtomicInteger((page - 1) * 45);
@@ -86,7 +86,7 @@ final class CoinsLeaderboardWindow extends PaginatedWindow {
         //        .filter(stats -> search.isEmpty() || search.isBlank() ||
         //            stats.playerId().toLowerCase(Locale.ROOT).contains(search.toLowerCase
         //            (Locale.ROOT)))
-        .map(entry -> createButton(entry.getKey(), entry.getValue())).toList();
+        .map(entry -> toButton(entry.getKey(), entry.getValue())).toList();
   }
 
   @Override
@@ -99,11 +99,11 @@ final class CoinsLeaderboardWindow extends PaginatedWindow {
 
   private int maxPagesInBook() {
     final var total = genericStatsRepository.count(
-        Query.builder().filter(where("references.coins", exists(true))).build()).join();
+        Query.builder().filter(where("coins", exists(true))).build()).join();
     return (int) Math.ceil(total / (double) PaginatedWindow.ITEMS_PER_PAGE);
   }
 
-  private ButtonBuilder createButton(GenericStats stats, int placement) {
+  private ButtonBuilder toButton(GenericStats stats, int placement) {
     return Button.builder()
         .withStaticItem(viewer(), builder -> builder.ofType(Material.PLAYER_HEAD)
             .withName(translatable("%s %s", text(placement + "."), text(stats.id())))
