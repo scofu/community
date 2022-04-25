@@ -72,35 +72,16 @@ final class RankEditWindow extends FlowWindow {
             .onClick(event -> {
               event.setCancelled(true);
               viewer().player().closeInventory();
-              design.bind(viewer().player(), new Sign() {
-                    @Override
-                    public void populate() {
-                      lines()[1] = text("^^^^^^");
-                      lines()[2] = text("Enter the");
-                      lines()[3] = text("rank name!");
-                    }
-                  })
-                  .result()
-                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
-                  .whenComplete((result, throwable) -> {
-                    if (result == null) {
-                      viewer().player().sendMessage(text("Timed out..."));
-                      return;
-                    }
-                    final var name = result[0];
-                    if (name == null || name.isEmpty() || name.isBlank()) {
-                      viewer().player().sendMessage(text("Invalid name."));
-                      design.bind(viewer().player(), RankEditWindow.this);
-                      return;
-                    }
-                    if (rankRepository.findByName(name).join().isPresent()) {
-                      design.bind(viewer().player(), RankEditWindow.this);
+              design.bind(viewer().player(),
+                  Sign.builder().withInput(text("Enter the rank name!")).onInput(result -> {
+                    if (rankRepository.findByName(result).join().isPresent()) {
+                      design.bind(viewer().player(), this);
                       viewer().player().sendMessage(text("Name taken."));
                       return;
                     }
-                    rank.setName(name);
-                    design.bind(viewer().player(), RankEditWindow.this);
-                  });
+                    rank.setName(result);
+                    design.bind(viewer().player(), this);
+                  }).onTimeout(() -> design.bind(viewer().player(), this)).build());
             }),
 
         Button.builder()
@@ -168,6 +149,16 @@ final class RankEditWindow extends FlowWindow {
                     rank.setNameColor(color);
                     design.bind(viewer().player(), RankEditWindow.this);
                   });
+            }),
+
+        Button.builder()
+            .withStaticItem(viewer(), builder -> builder.ofType(Material.BOOK)
+                .withName(text("Permissions"))
+                .withDescription(text("Edit permissions."))
+                .withFooter(text("Click to edit permissions!")))
+            .onClick(event -> {
+              event.setCancelled(true);
+              design.bind(viewer().player(), new RankPermissionListWindow(this, design, rank));
             }),
 
         Button.builder()

@@ -6,7 +6,6 @@ import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.Rank;
 import com.scofu.community.RankRepository;
 import com.scofu.design.bukkit.Design;
-import com.scofu.design.bukkit.chat.Chat;
 import com.scofu.design.bukkit.item.Button;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.sign.Sign;
@@ -15,7 +14,6 @@ import com.scofu.text.json.TagFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 
@@ -65,58 +63,18 @@ final class RankWindow extends FlowWindow {
                 .withDescription(text("Create and edit a new rank.")))
             .onClick(event -> {
               event.setCancelled(true);
-
-              viewer().player().closeInventory();
-              design.bind(viewer().player(), new Sign() {
-                    @Override
-                    public void populate() {
-                      lines()[1] = text("^^^^^^");
-                      lines()[2] = text("Enter the");
-                      lines()[3] = text("rank name!");
-                    }
-                  })
-                  .result()
-                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
-                  .whenComplete((result, throwable) -> {
-                    if (result == null) {
-                      viewer().player().sendMessage(text("Timed out..."));
-                      return;
-                    }
-                    final var name = result[0];
-                    if (name == null || name.isEmpty() || name.isBlank()) {
-                      viewer().player().sendMessage(text("Invalid name."));
-                      design.bind(viewer().player(), RankWindow.this);
-                      return;
-                    }
-                    if (rankRepository.findByName(name).join().isPresent()) {
-                      design.bind(viewer().player(), RankWindow.this);
-                      viewer().player().sendMessage(text("Name taken."));
-                      return;
-                    }
-                    final var rank = lazyFactory.create(Rank.class, Rank::id,
-                        UUID.randomUUID().toString(), Rank::name, name);
-                    design.bind(viewer().player(),
-                        new RankEditWindow(design, rankRepository, tagFactory, this, rank));
-                  });
-
-              design.bind(viewer().player(), new Chat())
-                  .result()
-                  .completeOnTimeout(null, 1, TimeUnit.MINUTES)
-                  .thenAccept(name -> {
-                    if (name == null || name.isEmpty() || name.isBlank()) {
-                      design.bind(viewer().player(), this);
-                      return;
-                    }
-                    if (rankRepository.findByName(name).join().isPresent()) {
+              design.bind(viewer().player(),
+                  Sign.builder().withInput(text("Enter the rank name!")).onInput(result -> {
+                    if (rankRepository.findByName(result).join().isPresent()) {
                       design.bind(viewer().player(), this);
                       viewer().player().sendMessage(text("Name taken."));
                       return;
                     }
                     final var rank = lazyFactory.create(Rank.class, Rank::id,
-                        UUID.randomUUID().toString(), Rank::name, name);
+                        UUID.randomUUID().toString(), Rank::name, result);
                     design.bind(viewer().player(),
                         new RankEditWindow(design, rankRepository, tagFactory, this, rank));
-                  });
+                  }).onTimeout(() -> design.bind(viewer().player(), this)).build());
             }));
   }
 
