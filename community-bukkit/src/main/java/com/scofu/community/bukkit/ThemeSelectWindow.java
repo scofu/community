@@ -10,6 +10,7 @@ import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
 import com.scofu.text.Theme;
 import com.scofu.text.ThemeRegistry;
+import java.util.Comparator;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -47,6 +48,7 @@ final class ThemeSelectWindow extends PaginatedWindow {
   protected List<? extends ButtonBuilder> buttons(String search, int page) {
     return themeRegistry.themes()
         .stream()
+        .sorted(Comparator.comparing(Theme::name))
         .map(theme -> Button.builder()
             .withStaticItem(viewer(),
                 itemBuilder -> itemBuilder.ofType(Material.FLOWER_BANNER_PATTERN)
