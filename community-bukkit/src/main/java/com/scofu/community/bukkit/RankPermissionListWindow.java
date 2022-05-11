@@ -41,13 +41,10 @@ final class RankPermissionListWindow extends PaginatedWindow {
         .onClick(event -> {
           event.setCancelled(true);
           viewer().player().closeInventory();
-          info().text("Please enter permission:")
-              .prefixed()
-              .renderTo(viewer().theme(), viewer().player()::sendMessage);
-          design().bind(viewer().player(), new Chat())
-              .result()
+          design().request(viewer().player(), new Chat(),
+                  info().text("Please enter permission:").prefixed())
               .completeOnTimeout(null, 10, TimeUnit.MINUTES)
-              .whenComplete(((result, throwable) -> {
+              .thenAcceptAsync(result -> {
                 if (result == null) {
                   error().text("Timed out.")
                       .prefixed()
@@ -57,7 +54,7 @@ final class RankPermissionListWindow extends PaginatedWindow {
                 }
                 rank.addPermission(new PeriodEscapedString(result), true);
                 design().bind(viewer().player(), this);
-              }));
+              });
         })
         .build());
   }
@@ -88,10 +85,9 @@ final class RankPermissionListWindow extends PaginatedWindow {
             .onClick(event -> {
               event.setCancelled(true);
               if (event.isShiftClick()) {
-                design().bind(viewer().player(), new ConfirmWindow(text("Are you sure?")))
-                    .result()
-                    .completeOnTimeout(null, 5, TimeUnit.MINUTES)
-                    .whenComplete((result, throwable) -> {
+                design().request(viewer().player(), new ConfirmWindow(), text("Are you sure?"))
+                    .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                    .thenAcceptAsync(result -> {
                       if (result == null || !result) {
                         design().bind(viewer().player(), this);
                         return;

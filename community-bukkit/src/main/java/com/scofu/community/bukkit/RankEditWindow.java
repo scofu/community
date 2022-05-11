@@ -72,9 +72,16 @@ final class RankEditWindow extends FlowWindow {
                 .withFooter(text("Click to rename!")))
             .onClick(event -> {
               event.setCancelled(true);
-              viewer().player().closeInventory();
-              design.bind(viewer().player(),
-                  Sign.builder().withInput(text("Enter the rank name!")).onInput(result -> {
+              design.request(viewer().player(), new Sign(), text("Enter the rank name!"))
+                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                  .thenAcceptAsync(result -> {
+                    if (result == null) {
+                      error().text("Timed out.")
+                          .prefixed()
+                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                      design.bind(viewer().player(), this);
+                      return;
+                    }
                     if (rankRepository.findByName(result).join().isPresent()) {
                       error().text("A rank with the name %s already exists.", result)
                           .prefixed()
@@ -84,7 +91,7 @@ final class RankEditWindow extends FlowWindow {
                     }
                     rank.setName(result);
                     design.bind(viewer().player(), this);
-                  }).onTimeout(() -> design.bind(viewer().player(), this)).build());
+                  });
             }),
 
         Button.builder()
@@ -112,21 +119,19 @@ final class RankEditWindow extends FlowWindow {
                 .withFooter(text("Click to set the tag!")))
             .onClick(event -> {
               event.setCancelled(true);
-              viewer().player().closeInventory();
-              design.bind(viewer().player(), new TagCreatorWindow(rank.tag()
+              design.request(viewer().player(), new TagCreatorWindow(design, tagFactory), rank.tag()
                       .orElseGet(() -> tagFactory.create(rank.name().toLowerCase(Locale.ROOT),
-                          Color.BRIGHT_WHITE, Color.BLACK)), design, tagFactory))
-                  .result()
+                          Color.BRIGHT_WHITE, Color.BLACK)))
                   .completeOnTimeout(null, 20, TimeUnit.MINUTES)
-                  .thenAccept(tag -> {
-                    if (tag == null) {
+                  .thenAcceptAsync(result -> {
+                    if (result == null) {
                       error().text("Timed out.")
                           .prefixed()
                           .renderTo(viewer().theme(), viewer().player()::sendMessage);
                       design.bind(viewer().player(), this);
                       return;
                     }
-                    rank.setTag(tag);
+                    rank.setTag(result);
                     design.bind(viewer().player(), this);
                   });
             }),
@@ -141,18 +146,17 @@ final class RankEditWindow extends FlowWindow {
                 .withFooter(text("Click to set the name color!")))
             .onClick(event -> {
               event.setCancelled(true);
-              design.bind(viewer().player(), new ColorPickerWindow(design))
-                  .result()
+              design.request(viewer().player(), new ColorPickerWindow(design), null)
                   .completeOnTimeout(null, 10, TimeUnit.MINUTES)
-                  .thenAccept(color -> {
-                    if (color == null) {
+                  .thenAcceptAsync(result -> {
+                    if (result == null) {
                       error().text("Timed out.")
                           .prefixed()
                           .renderTo(viewer().theme(), viewer().player()::sendMessage);
                       design.bind(viewer().player(), this);
                       return;
                     }
-                    rank.setNameColor(color);
+                    rank.setNameColor(result);
                     design.bind(viewer().player(), this);
                   });
             }),

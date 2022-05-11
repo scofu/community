@@ -1,6 +1,7 @@
 package com.scofu.community.bukkit;
 
 import static com.scofu.design.bukkit.item.ItemTextComponent.itemText;
+import static com.scofu.text.ContextualizedComponent.error;
 import static com.scofu.text.ContextualizedComponent.info;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
@@ -57,38 +58,41 @@ final class GrantListWindow extends PaginatedWindow {
             .onClick(event -> {
               event.setCancelled(true);
               if (event.isShiftClick()) {
-                design().bind(viewer().player(), new ConfirmWindow(text("Are you sure?")))
-                    .result()
-                    .completeOnTimeout(false, 1, TimeUnit.MINUTES)
-                    .thenAccept(result -> {
+                design().request(viewer().player(), new ConfirmWindow(), text("Are you sure?"))
+                    .completeOnTimeout(false, 10, TimeUnit.MINUTES)
+                    .thenAcceptAsync(result -> {
                       if (result) {
                         grantRepository.delete(grant.id());
                         grants.remove(grant);
                       }
-                      design().bind(viewer().player(), GrantListWindow.this);
+                      design().bind(viewer().player(), this);
                     });
                 return;
               }
               if (grant.isRevoked()) {
                 return;
               }
-              viewer().player().closeInventory();
-              info().text("Please enter reason:")
-                  .prefixed()
-                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
-              design().bind(viewer().player(), new Chat())
-                  .result()
-                  .thenAccept(reason -> design().bind(viewer().player(),
-                          new ConfirmWindow(text("Are you sure?")))
-                      .result()
-                      .completeOnTimeout(false, 1, TimeUnit.MINUTES)
-                      .thenAccept(result -> {
-                        if (result) {
-                          grant.revoke(viewer().player().getUniqueId().toString(), reason);
-                          grantRepository.update(grant);
-                        }
-                        design().bind(viewer().player(), GrantListWindow.this);
-                      }));
+              design().request(viewer().player(), new Chat(),
+                      info().text("Please enter reason:").prefixed())
+                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                  .thenAcceptAsync(reason -> {
+                    if (reason == null) {
+                      error().text("Timed out.")
+                          .prefixed()
+                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                      design().bind(viewer().player(), this);
+                      return;
+                    }
+                    design().request(viewer().player(), new ConfirmWindow(), text("Are you sure?"))
+                        .completeOnTimeout(false, 10, TimeUnit.MINUTES)
+                        .thenAcceptAsync(confirm -> {
+                          if (confirm) {
+                            grant.revoke(viewer().player().getUniqueId().toString(), reason);
+                            grantRepository.update(grant);
+                          }
+                          design().bind(viewer().player(), this);
+                        });
+                  });
             }))
         .toList();
   }

@@ -15,6 +15,7 @@ import com.scofu.text.json.TagFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 
@@ -64,8 +65,16 @@ final class RankWindow extends FlowWindow {
                 .withDescription(text("Create and edit a new rank.")))
             .onClick(event -> {
               event.setCancelled(true);
-              design.bind(viewer().player(),
-                  Sign.builder().withInput(text("Enter the rank name!")).onInput(result -> {
+              design.request(viewer().player(), new Sign(), text("Enter the rank name!"))
+                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                  .thenAcceptAsync(result -> {
+                    if (result == null) {
+                      error().text("Timed out.")
+                          .prefixed()
+                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                      design.bind(viewer().player(), this);
+                      return;
+                    }
                     if (rankRepository.findByName(result).join().isPresent()) {
                       error().text("A rank with the name %s already exists.", result)
                           .prefixed()
@@ -77,7 +86,7 @@ final class RankWindow extends FlowWindow {
                         UUID.randomUUID().toString(), Rank::name, result);
                     design.bind(viewer().player(),
                         new RankEditWindow(design, rankRepository, tagFactory, this, rank));
-                  }).onTimeout(() -> design.bind(viewer().player(), this)).build());
+                  });
             }));
   }
 
