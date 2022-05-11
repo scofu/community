@@ -24,7 +24,6 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 
 final class GrantListWindow extends PaginatedWindow {
@@ -52,8 +51,9 @@ final class GrantListWindow extends PaginatedWindow {
                     grant.isRevoked() ? Material.RED_BANNER
                         : grant.hasExpired() ? Material.YELLOW_BANNER : Material.GREEN_BANNER)
                 .withName(itemText(Time.formatDate(grant.issuedAt(), ZoneId.systemDefault())).color(
-                    grant.isRevoked() ? NamedTextColor.RED
-                        : grant.hasExpired() ? NamedTextColor.YELLOW : NamedTextColor.GREEN))
+                    grant.isRevoked() ? viewer().theme().brightRed()
+                        : grant.hasExpired() ? viewer().theme().brightYellow()
+                            : viewer().theme().brightGreen()))
                 .adopt(childBuilder -> formatMeta(grant, childBuilder)))
             .onClick(event -> {
               event.setCancelled(true);
