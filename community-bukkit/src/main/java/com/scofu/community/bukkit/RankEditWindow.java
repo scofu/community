@@ -187,7 +187,7 @@ final class RankEditWindow extends FlowWindow {
 
         Button.builder()
             .withStaticItem(viewer(), builder -> builder.ofType(Material.RED_DYE)
-                .withName(text("Go back").color(NamedTextColor.RED))
+                .withName(text("Go back"))
                 .withDescription(text("Return to the previous window.")))
             .onClick(event -> {
               event.setCancelled(true);
