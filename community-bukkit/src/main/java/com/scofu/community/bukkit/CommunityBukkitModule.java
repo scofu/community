@@ -18,13 +18,14 @@ public class CommunityBukkitModule extends AbstractFeatureModule {
   @Override
   protected void configure() {
     install(new PermissionModule());
-    bind(PlayerRenderer.class).in(Scopes.SINGLETON);
-    bind(UserRenderer.class).in(Scopes.SINGLETON);
     bind(StaffChat.class).in(Scopes.SINGLETON);
     OptionalBinder.newOptionalBinder(binder(), Chat.class)
         .setBinding()
         .to(CommunityChat.class)
         .in(Scopes.SINGLETON);
+    bindFeature(PlayerRenderer.class).in(Scopes.SINGLETON);
+    bindFeature(UserRenderer.class).in(Scopes.SINGLETON);
+    bindFeature(EntityRenderer.class).in(Scopes.SINGLETON);
     bindFeature(RankTransformer.class).in(Scopes.SINGLETON);
     bindFeature(RankDescriber.class).in(Scopes.SINGLETON);
     bindFeature(RankCommands.class).in(Scopes.SINGLETON);
