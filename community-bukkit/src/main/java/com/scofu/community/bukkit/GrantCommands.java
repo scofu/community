@@ -1,5 +1,6 @@
 package com.scofu.community.bukkit;
 
+import static com.scofu.design.bukkit.item.Button.button;
 import static com.scofu.text.Components.wrap;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
@@ -15,7 +16,6 @@ import com.scofu.community.Grant;
 import com.scofu.community.GrantRepository;
 import com.scofu.community.Rank;
 import com.scofu.design.bukkit.Design;
-import com.scofu.design.bukkit.item.Button;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
 import java.time.Duration;
@@ -73,54 +73,94 @@ final class GrantCommands implements Listener, Feature {
   private void grants(Expansion<Player> source, Player target) {
     final var player = source.orElseThrow();
     player.sendMessage(translatable("Loading grants....").color(NamedTextColor.GRAY));
-    grantRepository.allByUserId(target.getUniqueId().toString())
-        .whenComplete(((grants, throwable) -> {
-          if (throwable != null) {
-            player.sendMessage(translatable("Error, something went wrong."));
-          } else {
-            player.sendMessage(text("Opening menu...").color(NamedTextColor.GRAY));
-            try {
-              design.bind(player, new GrantListWindow(null, design,
-                  grants.sorted(Comparator.comparing(Grant::issuedAt))
-                      .collect(Collectors.toCollection(Lists::newArrayList)), grantRepository));
-            } catch (Throwable throwable1) {
-              throwable1.printStackTrace();
-              System.out.println(throwable1.getCause());
-              player.sendMessage("error");
-            }
-            player.sendMessage("OKOKOK");
-          }
-        }));
+    grantRepository
+        .allByUserId(target.getUniqueId().toString())
+        .whenComplete(
+            ((grants, throwable) -> {
+              if (throwable != null) {
+                player.sendMessage(translatable("Error, something went wrong."));
+              } else {
+                player.sendMessage(text("Opening menu...").color(NamedTextColor.GRAY));
+                try {
+                  design.bind(
+                      player,
+                      new GrantListWindow(
+                          null,
+                          design,
+                          grants
+                              .sorted(Comparator.comparing(Grant::issuedAt))
+                              .collect(Collectors.toCollection(Lists::newArrayList)),
+                          grantRepository));
+                } catch (Throwable throwable1) {
+                  throwable1.printStackTrace();
+                  System.out.println(throwable1.getCause());
+                  player.sendMessage("error");
+                }
+                player.sendMessage("OKOKOK");
+              }
+            }));
   }
 
   @Identified("grant")
   @Permission("scofu.command.grant")
-  private void grant(Expansion<Player> source, Player target, Rank rank, String reason,
+  private void grant(
+      Expansion<Player> source,
+      Player target,
+      Rank rank,
+      String reason,
       Optional<Duration> duration) {
     final var player = source.orElseThrow();
     final var expireAt = duration.map(x -> Instant.now().plus(x)).orElse(null);
     final Grant grant;
     if (expireAt == null) {
-      grant = lazyFactory.create(Grant.class,
-          Map.of(Grant::id, UUID.randomUUID().toString(), Grant::issuedAt, Instant.now(),
-              Grant::issuerId, player.getUniqueId().toString(), Grant::reason, reason,
-              Grant::userId, target.getUniqueId().toString(), Grant::rankId, rank.id()));
+      grant =
+          lazyFactory.create(
+              Grant.class,
+              Map.of(
+                  Grant::id,
+                  UUID.randomUUID().toString(),
+                  Grant::issuedAt,
+                  Instant.now(),
+                  Grant::issuerId,
+                  player.getUniqueId().toString(),
+                  Grant::reason,
+                  reason,
+                  Grant::userId,
+                  target.getUniqueId().toString(),
+                  Grant::rankId,
+                  rank.id()));
     } else {
-      grant = lazyFactory.create(Grant.class,
-          Map.of(Grant::id, UUID.randomUUID().toString(), Grant::issuedAt, Instant.now(),
-              Grant::issuerId, player.getUniqueId().toString(), Grant::reason, reason,
-              Grant::userId, target.getUniqueId().toString(), Grant::rankId, rank.id(),
-              Grant::expireAt, expireAt));
+      grant =
+          lazyFactory.create(
+              Grant.class,
+              Map.of(
+                  Grant::id,
+                  UUID.randomUUID().toString(),
+                  Grant::issuedAt,
+                  Instant.now(),
+                  Grant::issuerId,
+                  player.getUniqueId().toString(),
+                  Grant::reason,
+                  reason,
+                  Grant::userId,
+                  target.getUniqueId().toString(),
+                  Grant::rankId,
+                  rank.id(),
+                  Grant::expireAt,
+                  expireAt));
     }
     player.sendMessage(translatable("Updating...").color(NamedTextColor.GRAY));
-    grantRepository.update(grant).whenComplete(((x, throwable) -> {
-      if (throwable != null) {
-        player.sendMessage(translatable("Error, something went wrong."));
-      } else {
-        player.sendMessage(
-            translatable("Granted %s rank %s.", text(target.getName()), text(rank.id())));
-      }
-    }));
+    grantRepository
+        .update(grant)
+        .whenComplete(
+            ((x, throwable) -> {
+              if (throwable != null) {
+                player.sendMessage(translatable("Error, something went wrong."));
+              } else {
+                player.sendMessage(
+                    translatable("Granted %s rank %s.", text(target.getName()), text(rank.id())));
+              }
+            }));
   }
 
   @Identified("grant revoke")
@@ -138,43 +178,60 @@ final class GrantCommands implements Listener, Feature {
     }
     grant.revoke(player.getUniqueId().toString(), reason);
     player.sendMessage(translatable("Updating..."));
-    grantRepository.update(grant).whenComplete(((x, throwable) -> {
-      if (throwable != null) {
-        player.sendMessage(translatable("Error, something went wrong."));
-      } else {
-        player.sendMessage(translatable("Revoked grant."));
-      }
-    }));
+    grantRepository
+        .update(grant)
+        .whenComplete(
+            ((x, throwable) -> {
+              if (throwable != null) {
+                player.sendMessage(translatable("Error, something went wrong."));
+              } else {
+                player.sendMessage(translatable("Revoked grant."));
+              }
+            }));
   }
 
   @Identified("paginatedtest")
   private void paginatedTest(Expansion<Player> source) {
     final var player = source.orElseThrow();
-    design.bind(player, new PaginatedWindow(null, null, design) {
+    design.bind(
+        player,
+        new PaginatedWindow(null, null, design) {
 
-      @Override
-      protected Component title(String search, int page, int pages) {
-        return text("Test");
-      }
+          @Override
+          protected Component title(String search, int page, int pages) {
+            return text("Test");
+          }
 
-      @Override
-      protected List<? extends ButtonBuilder> buttons(String search, int page) {
-        return Stream.of(Material.values())
-            .filter(material -> !material.isLegacy())
-            .filter(material -> search.isEmpty() || search.isBlank() || material.name()
-                .toLowerCase(Locale.ROOT)
-                .contains(search.toLowerCase(Locale.ROOT)))
-            .map(material -> Button.builder()
-                .withItem(viewer(), builder -> builder.ofType(material)
-                    .withName(text(material.name().toLowerCase(Locale.ROOT))))
-                .onClick(event -> {
-                  event.setCancelled(true);
-                  viewer().player().closeInventory();
-                  viewer().player().sendActionBar(text("yoooo"));
-                }))
-            .toList();
-      }
-    });
+          @Override
+          protected List<? extends ButtonBuilder> buttons(String search, int page) {
+            return Stream.of(Material.values())
+                .filter(material -> !material.isLegacy())
+                .filter(
+                    material ->
+                        search.isEmpty()
+                            || search.isBlank()
+                            || material
+                                .name()
+                                .toLowerCase(Locale.ROOT)
+                                .contains(search.toLowerCase(Locale.ROOT)))
+                .map(
+                    material ->
+                        button()
+                            .withItem(
+                                viewer(),
+                                builder ->
+                                    builder
+                                        .ofType(material)
+                                        .withName(text(material.name().toLowerCase(Locale.ROOT))))
+                            .onClick(
+                                event -> {
+                                  event.setCancelled(true);
+                                  viewer().player().closeInventory();
+                                  viewer().player().sendActionBar(text("yoooo"));
+                                }))
+                .toList();
+          }
+        });
   }
 
   @Identified("permtest")
@@ -200,8 +257,8 @@ final class GrantCommands implements Listener, Feature {
     husk.setInvulnerable(true);
     husk.setAI(true);
     final var head = new ItemStack(Material.PLAYER_HEAD);
-    head.editMeta(SkullMeta.class,
-        meta -> meta.setOwningPlayer(Bukkit.getOfflinePlayer("everful")));
+    head.editMeta(
+        SkullMeta.class, meta -> meta.setOwningPlayer(Bukkit.getOfflinePlayer("everful")));
     husk.getEquipment().setHelmet(head);
     husk.setTarget(player);
     husk.getEquipment().setItemInMainHand(new ItemStack(Material.WOODEN_SWORD));
@@ -209,15 +266,16 @@ final class GrantCommands implements Listener, Feature {
   }
 
   @Identified("testsplit")
-  private void testsplit(Expansion<Player> source, int targetWidth, int padding, String format,
-      String thing) {
+  private void testsplit(
+      Expansion<Player> source, int targetWidth, int padding, String format, String thing) {
     final var player = source.orElseThrow();
-    final var component = translatable(format, text(thing).color(NamedTextColor.DARK_PURPLE)).color(
-        NamedTextColor.GRAY).compact();
+    final var component =
+        translatable(format, text(thing).color(NamedTextColor.DARK_PURPLE))
+            .color(NamedTextColor.GRAY)
+            .compact();
     final var translated = GlobalTranslator.render(component, player.locale());
     player.sendMessage(space());
     wrap(translated, player.locale(), targetWidth, padding).forEach(player::sendMessage);
     player.sendMessage(space());
   }
-
 }
