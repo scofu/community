@@ -15,10 +15,7 @@ import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
-/**
- * Renders players.
- */
-public class PlayerRenderer implements Renderer<Player> {
+final class PlayerRenderer implements Renderer<Player> {
 
   private final UserRepository userRepository;
   private final RankRepository rankRepository;
@@ -27,6 +24,11 @@ public class PlayerRenderer implements Renderer<Player> {
   PlayerRenderer(UserRepository userRepository, RankRepository rankRepository) {
     this.userRepository = userRepository;
     this.rankRepository = rankRepository;
+  }
+
+  @Override
+  public Class<Player> type() {
+    return Player.class;
   }
 
   @Override

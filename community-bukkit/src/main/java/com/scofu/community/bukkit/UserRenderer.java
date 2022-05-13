@@ -17,10 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 
-/**
- * Renders players.
- */
-public class UserRenderer implements Renderer<UUID> {
+final class UserRenderer implements Renderer<UUID> {
 
   private final ProfileRepository profileRepository;
   private final UserRepository userRepository;
@@ -32,6 +29,11 @@ public class UserRenderer implements Renderer<UUID> {
     this.profileRepository = profileRepository;
     this.userRepository = userRepository;
     this.rankRepository = rankRepository;
+  }
+
+  @Override
+  public Class<UUID> type() {
+    return UUID.class;
   }
 
   @Override
