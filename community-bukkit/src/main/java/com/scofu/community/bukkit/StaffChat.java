@@ -12,9 +12,11 @@ import com.scofu.network.message.MessageFlow;
 import com.scofu.network.message.MessageQueue;
 import com.scofu.network.message.QueueBuilder;
 import com.scofu.text.Color;
+import com.scofu.text.RendererRegistry;
 import com.scofu.text.ThemeRegistry;
 import com.scofu.text.json.Tag;
 import com.scofu.text.json.TagFactory;
+import java.util.UUID;
 import javax.inject.Inject;
 import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
@@ -27,18 +29,18 @@ public class StaffChat extends AbstractChat {
 
   private final QueueBuilder<StaffChatParticipantMessage, Void> participantQueue;
   private final QueueBuilder<StaffChatRawMessage, Void> rawQueue;
-  private final UserRenderer userRenderer;
+  private final RendererRegistry rendererRegistry;
   private final Tag tag;
 
   @Inject
   StaffChat(MessageQueue messageQueue, MessageFlow messageFlow, ThemeRegistry themeRegistry,
-      UserRenderer userRenderer, TagFactory tagFactory) {
+      RendererRegistry rendererRegistry, TagFactory tagFactory) {
     super(translatable("Staff"), themeRegistry);
     this.participantQueue = messageQueue.declareFor(StaffChatParticipantMessage.class)
         .withTopic("scofu.platform.staffchat");
     this.rawQueue = messageQueue.declareFor(StaffChatRawMessage.class)
         .withTopic("scofu.platform.staffchat");
-    this.userRenderer = userRenderer;
+    this.rendererRegistry = rendererRegistry;
     messageFlow.subscribeTo(StaffChatParticipantMessage.class)
         .withTopic("scofu.platform.staffchat")
         .via(this::onStaffChatParticipantMessage);
@@ -61,7 +63,8 @@ public class StaffChat extends AbstractChat {
 
   private void onStaffChatParticipantMessage(StaffChatParticipantMessage message) {
     sendThemedMessage(Identity.identity(message.senderId()), MessageType.CHAT, theme -> {
-      final var user = userRenderer.render(theme, message.senderId()).orElse(Component.empty());
+      final var user = rendererRegistry.render(theme, UUID.class, message.senderId())
+          .orElse(Component.empty());
       return translatable("%s %s", tag.render(theme).orElse(Component.empty()),
           user.append(text(": ").append(text(message.message()).color(theme.white()))));
     });

@@ -13,6 +13,7 @@ import com.scofu.design.bukkit.sidebar.event.SidebarBoundEvent;
 import com.scofu.design.bukkit.tablist.Tablist;
 import com.scofu.design.bukkit.tablist.TablistEntry;
 import com.scofu.network.instance.bukkit.LocalInstanceProvider;
+import com.scofu.text.RendererRegistry;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,6 +23,7 @@ import java.util.function.Supplier;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.format.TextDecoration.State;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -39,15 +41,15 @@ final class DesignListener implements Listener, Feature {
         TimeUnit.MINUTES);
   }
 
-  private final PlayerRenderer playerRenderer;
+  private final RendererRegistry rendererRegistry;
   private final Design design;
   private final LocalInstanceProvider localInstanceProvider;
 
 
   @Inject
-  DesignListener(PlayerRenderer playerRenderer, Design design,
+  DesignListener(RendererRegistry rendererRegistry, Design design,
       LocalInstanceProvider localInstanceProvider) {
-    this.playerRenderer = playerRenderer;
+    this.rendererRegistry = rendererRegistry;
     this.design = design;
     this.localInstanceProvider = localInstanceProvider;
   }
@@ -77,7 +79,7 @@ final class DesignListener implements Listener, Feature {
             .findFirst()
             .orElse(null);
         final var entry = new TablistEntry(
-            playerRenderer.render(viewer.theme(), onlinePlayer).orElse(empty()),
+            rendererRegistry.render(viewer.theme(), Player.class, onlinePlayer).orElse(empty()),
             onlinePlayer.getPing(), textures == null ? null : textures.getValue(),
             textures == null ? null : textures.getSignature());
         entries[slot++] = entry;
