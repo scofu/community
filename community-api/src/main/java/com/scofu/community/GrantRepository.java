@@ -1,5 +1,6 @@
 package com.scofu.community;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.scofu.network.document.Filter.equalsTo;
 import static com.scofu.network.document.Filter.where;
 
@@ -45,6 +46,7 @@ public class GrantRepository extends AbstractDocumentRepository<Grant> {
    * @param rankId the rank id
    */
   public CompletableFuture<Stream<Grant>> byRankId(String rankId) {
+    checkNotNull(rankId, "rankId");
     return find(Query.builder().filter(where("rankId", equalsTo(rankId))).build())
         .thenApplyAsync(
             map ->
@@ -61,6 +63,7 @@ public class GrantRepository extends AbstractDocumentRepository<Grant> {
    * @param userId the user id
    */
   public CompletableFuture<Stream<Grant>> byUserId(String userId) {
+    checkNotNull(userId, "userId");
     return find(Query.builder().filter(where("userId", equalsTo(userId))).build())
         .thenApplyAsync(
             map ->
@@ -77,6 +80,7 @@ public class GrantRepository extends AbstractDocumentRepository<Grant> {
    * @param userId the user id
    */
   public CompletableFuture<Stream<Grant>> allByUserId(String userId) {
+    checkNotNull(userId, "userId");
     return find(Query.builder().filter(where("userId", equalsTo(userId))).build())
         .thenApplyAsync(
             map ->

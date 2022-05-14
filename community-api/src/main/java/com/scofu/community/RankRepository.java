@@ -1,5 +1,6 @@
 package com.scofu.community;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.scofu.network.document.Filter.matchesRegex;
 import static com.scofu.network.document.Filter.where;
 import static com.scofu.network.document.Filter.withOptions;
@@ -38,6 +39,7 @@ public class RankRepository extends AbstractDocumentRepository<Rank> {
    * @param name the name
    */
   public CompletableFuture<Optional<Rank>> findByName(String name) {
+    checkNotNull(name, "name");
     return find(Query.builder()
             .filter(where("name", matchesRegex(name).and(withOptions("i"))))
             .limitTo(1)
@@ -52,6 +54,8 @@ public class RankRepository extends AbstractDocumentRepository<Rank> {
    * @param permission the permission
    */
   public Optional<Boolean> resolvePermissionWithInheritance(Rank rank, String permission) {
+    checkNotNull(rank, "rank");
+    checkNotNull(permission, "permission");
     return rank.resolvePermission(permission)
         .or(
             () -> {

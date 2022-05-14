@@ -1,5 +1,7 @@
 package com.scofu.community;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.cache.CacheBuilder;
 import com.scofu.common.json.Json;
 import com.scofu.network.document.AbstractDocumentRepository;
@@ -40,6 +42,8 @@ public class UserRepository extends AbstractDocumentRepository<User> {
    * @param permission the permission
    */
   public Optional<Boolean> resolvePermission(User user, String permission) {
+    checkNotNull(user, "user");
+    checkNotNull(permission, "permission");
     return user.session()
         .flatMap(Session::grant)
         .map(Grant::rankId)
