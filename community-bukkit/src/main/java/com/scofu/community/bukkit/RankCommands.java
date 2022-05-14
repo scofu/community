@@ -7,55 +7,40 @@ import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
 import com.scofu.command.validation.Permission;
 import com.scofu.common.inject.Feature;
-import com.scofu.common.json.Json;
-import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.RankRepository;
-import com.scofu.community.UserRepository;
-import com.scofu.community.bukkit.permission.WildcardPermissionChecker;
+import com.scofu.community.bukkit.design.RankWindow;
 import com.scofu.design.bukkit.Design;
 import com.scofu.network.document.Query;
 import com.scofu.text.ThemeRegistry;
-import com.scofu.text.json.TagFactory;
 import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import org.bukkit.entity.Player;
 
 final class RankCommands implements Feature {
 
   private final Design design;
-  private final LazyFactory lazyFactory;
-  private final TagFactory tagFactory;
   private final ThemeRegistry themeRegistry;
   private final RankRepository rankRepository;
-  private final UserRepository userRepository;
-  private final WildcardPermissionChecker wildcardPermissionChecker;
-  private final Json json;
+  private final Provider<RankWindow> rankWindowProvider;
 
   @Inject
   RankCommands(
       Design design,
-      LazyFactory lazyFactory,
-      TagFactory tagFactory,
       ThemeRegistry themeRegistry,
       RankRepository rankRepository,
-      UserRepository userRepository,
-      WildcardPermissionChecker wildcardPermissionChecker,
-      Json json) {
+      Provider<RankWindow> rankWindowProvider) {
     this.design = design;
-    this.lazyFactory = lazyFactory;
-    this.tagFactory = tagFactory;
     this.themeRegistry = themeRegistry;
     this.rankRepository = rankRepository;
-    this.userRepository = userRepository;
-    this.wildcardPermissionChecker = wildcardPermissionChecker;
-    this.json = json;
+    this.rankWindowProvider = rankWindowProvider;
   }
 
   @Identified("ranks")
   @Permission("scofu.command.ranks")
   private void ranks(Expansion<Player> source) {
     final var player = source.orElseThrow();
-    design.bind(player, new RankWindow(design, rankRepository, lazyFactory, tagFactory));
+    design.bind(player, rankWindowProvider.get());
   }
 
   @Identified("deleteallranks")

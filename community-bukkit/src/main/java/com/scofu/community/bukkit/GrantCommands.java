@@ -15,6 +15,7 @@ import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.Grant;
 import com.scofu.community.GrantRepository;
 import com.scofu.community.Rank;
+import com.scofu.community.bukkit.design.GrantListWindow;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
