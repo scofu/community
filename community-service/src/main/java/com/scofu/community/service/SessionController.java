@@ -26,35 +26,53 @@ final class SessionController implements Feature, DocumentStateListener<Grant> {
 
   @Override
   public void onUpdate(Grant grant, boolean cached) {
-    userRepository.byIdAsync(grant.userId())
-        .thenAcceptAsync(optionalUser -> optionalUser.ifPresent(user -> user.session()
-            .ifPresent(session -> grantRepository.byUserId(user.id()).thenAcceptAsync(grants -> {
-              final var bestGrant = grants.findFirst().orElse(null);
-              session.setGrant(bestGrant);
-              userRepository.update(user);
-            }))))
+    userRepository
+        .byIdAsync(grant.userId())
+        .thenAcceptAsync(
+            optionalUser ->
+                optionalUser.ifPresent(
+                    user ->
+                        user.session()
+                            .ifPresent(
+                                session ->
+                                    grantRepository
+                                        .byUserId(user.id())
+                                        .thenAcceptAsync(
+                                            grants -> {
+                                              final var bestGrant = grants.findFirst().orElse(null);
+                                              session.setGrant(bestGrant);
+                                              userRepository.update(user);
+                                            }))))
         .orTimeout(10, TimeUnit.SECONDS)
-        .whenCompleteAsync((x, error) -> {
-          if (error != null) {
-            error.printStackTrace();
-          }
-        });
+        .whenCompleteAsync(
+            (x, error) -> {
+              if (error != null) {
+                error.printStackTrace();
+              }
+            });
   }
 
   @Override
   public void onDelete(String id) {
-    userRepository.find(
-            Query.builder().filter(where("session.grant._id", equalsTo(id))).limitTo(1).build())
-        .thenAccept(map -> map.values()
-            .stream()
-            .findFirst()
-            .ifPresent(user -> user.session().ifPresent(session -> {
-              final var bestGrant = grantRepository.byUserId(user.id())
-                  .join()
-                  .findFirst()
-                  .orElse(null);
-              session.setGrant(bestGrant);
-              userRepository.update(user);
-            })));
+    userRepository
+        .find(Query.builder().filter(where("session.grant._id", equalsTo(id))).limitTo(1).build())
+        .thenAccept(
+            map ->
+                map.values().stream()
+                    .findFirst()
+                    .ifPresent(
+                        user ->
+                            user.session()
+                                .ifPresent(
+                                    session -> {
+                                      final var bestGrant =
+                                          grantRepository
+                                              .byUserId(user.id())
+                                              .join()
+                                              .findFirst()
+                                              .orElse(null);
+                                      session.setGrant(bestGrant);
+                                      userRepository.update(user);
+                                    })));
   }
 }
