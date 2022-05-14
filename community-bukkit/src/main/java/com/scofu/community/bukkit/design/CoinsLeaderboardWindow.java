@@ -1,5 +1,6 @@
-package com.scofu.community.bukkit;
+package com.scofu.community.bukkit.design;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.scofu.design.bukkit.item.Button.button;
 import static com.scofu.network.document.Filter.exists;
 import static com.scofu.network.document.Filter.where;
@@ -24,18 +25,29 @@ import java.util.stream.IntStream;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 
-final class CoinsLeaderboardWindow extends PaginatedWindow {
+/** Coins leaderboard window. */
+public final class CoinsLeaderboardWindow extends PaginatedWindow {
 
   private final Design design;
   private final Book<GenericStats> coinsLeaderboard;
   private final GenericStatsRepository genericStatsRepository;
   private Page<GenericStats> page;
 
+  /**
+   * Constructs a new coins leaderboard window.
+   *
+   * @param design the design
+   * @param coinsLeaderboard the coins leaderboard
+   * @param genericStatsRepository the generic stats repository
+   */
   public CoinsLeaderboardWindow(
       Design design,
       Book<GenericStats> coinsLeaderboard,
       GenericStatsRepository genericStatsRepository) {
     super(TickSpeed.NORMAL, null, design);
+    checkNotNull(design, "design");
+    checkNotNull(coinsLeaderboard, "coinsLeaderboard");
+    checkNotNull(genericStatsRepository, "genericStatsRepository");
     this.design = design;
     this.coinsLeaderboard = coinsLeaderboard;
     this.genericStatsRepository = genericStatsRepository;

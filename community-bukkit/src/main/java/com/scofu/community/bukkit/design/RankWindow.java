@@ -1,9 +1,10 @@
-package com.scofu.community.bukkit;
+package com.scofu.community.bukkit.design;
 
 import static com.scofu.design.bukkit.item.Button.button;
 import static com.scofu.text.ContextualizedComponent.error;
 import static net.kyori.adventure.text.Component.text;
 
+import com.google.inject.Inject;
 import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.Rank;
 import com.scofu.community.RankRepository;
@@ -19,14 +20,16 @@ import java.util.concurrent.TimeUnit;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 
-final class RankWindow extends FlowWindow {
+/** Rank window. */
+public final class RankWindow extends FlowWindow {
 
   private final Design design;
   private final RankRepository rankRepository;
   private final LazyFactory lazyFactory;
   private final TagFactory tagFactory;
 
-  public RankWindow(
+  @Inject
+  RankWindow(
       Design design,
       RankRepository rankRepository,
       LazyFactory lazyFactory,

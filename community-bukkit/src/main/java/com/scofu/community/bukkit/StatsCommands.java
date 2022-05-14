@@ -19,6 +19,7 @@ import com.scofu.common.inject.Feature;
 import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.GenericStats;
 import com.scofu.community.GenericStatsRepository;
+import com.scofu.community.bukkit.design.CoinsLeaderboardWindow;
 import com.scofu.design.bukkit.Container.TickSpeed;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.hologram.TextHologram;

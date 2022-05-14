@@ -1,5 +1,6 @@
-package com.scofu.community.bukkit;
+package com.scofu.community.bukkit.design;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.scofu.design.bukkit.item.Button.button;
 import static com.scofu.design.bukkit.item.ItemTextComponent.itemText;
 import static com.scofu.text.ContextualizedComponent.error;
@@ -23,17 +24,30 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 
-final class GrantListWindow extends PaginatedWindow {
+/** Grant list window. */
+public final class GrantListWindow extends PaginatedWindow {
 
   private final List<Grant> grants;
   private final GrantRepository grantRepository;
 
+  /**
+   * Constructs a new grant list window.
+   *
+   * @param parent the parent
+   * @param design the design
+   * @param grants the grants
+   * @param grantRepository the grant repository
+   */
   public GrantListWindow(
-      Window parent, Design design, List<Grant> grants, GrantRepository grantRepository) {
+      @Nullable Window parent, Design design, List<Grant> grants, GrantRepository grantRepository) {
     super(null, parent, design);
+    checkNotNull(design, "design");
+    checkNotNull(grants, "grants");
+    checkNotNull(grantRepository, "grantRepository");
     this.grants = grants;
     this.grantRepository = grantRepository;
   }

@@ -1,8 +1,9 @@
-package com.scofu.community.bukkit;
+package com.scofu.community.bukkit.design;
 
 import static com.scofu.design.bukkit.item.Button.button;
 import static net.kyori.adventure.text.Component.text;
 
+import com.google.inject.Inject;
 import com.scofu.community.User;
 import com.scofu.community.UserRepository;
 import com.scofu.design.bukkit.Design;
@@ -16,15 +17,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
 
-final class ThemeSelectWindow extends PaginatedWindow {
+/** Theme select window. */
+public final class ThemeSelectWindow extends PaginatedWindow {
 
   private final ThemeRegistry themeRegistry;
   private final UserRepository userRepository;
   private final Design design;
   private String selectedTheme;
 
-  public ThemeSelectWindow(
-      Design design, ThemeRegistry themeRegistry, UserRepository userRepository) {
+  @Inject
+  ThemeSelectWindow(Design design, ThemeRegistry themeRegistry, UserRepository userRepository) {
     super(null, null, design);
     this.themeRegistry = themeRegistry;
     this.design = design;

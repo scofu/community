@@ -1,4 +1,4 @@
-package com.scofu.community.bukkit;
+package com.scofu.community.bukkit.design;
 
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;

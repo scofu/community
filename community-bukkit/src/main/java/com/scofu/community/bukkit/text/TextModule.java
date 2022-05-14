@@ -2,10 +2,8 @@ package com.scofu.community.bukkit.text;
 
 import com.google.inject.Scopes;
 import com.scofu.common.inject.AbstractFeatureModule;
-import com.scofu.common.inject.annotation.Module;
 
 /** Text module. */
-@Module
 public class TextModule extends AbstractFeatureModule {
 
   @Override

@@ -5,6 +5,7 @@ import com.google.inject.multibindings.OptionalBinder;
 import com.scofu.chat.Chat;
 import com.scofu.common.inject.AbstractFeatureModule;
 import com.scofu.common.inject.annotation.Module;
+import com.scofu.community.bukkit.design.DesignModule;
 import com.scofu.community.bukkit.permission.PermissionModule;
 import com.scofu.community.bukkit.text.TextModule;
 import com.scofu.text.BundledTranslationProvider;
@@ -18,6 +19,7 @@ public class CommunityBukkitModule extends AbstractFeatureModule {
   protected void configure() {
     install(new PermissionModule());
     install(new TextModule());
+    install(new DesignModule());
     bind(StaffChat.class).in(Scopes.SINGLETON);
     OptionalBinder.newOptionalBinder(binder(), Chat.class)
         .setBinding()
@@ -33,7 +35,6 @@ public class CommunityBukkitModule extends AbstractFeatureModule {
     bindFeature(TimeListener.class).in(Scopes.SINGLETON);
     bindFeature(ThemeCommand.class).in(Scopes.SINGLETON);
     bindFeature(ThemeListener.class).in(Scopes.SINGLETON);
-    bindFeature(DesignListener.class).in(Scopes.SINGLETON);
     bindFeature(GenericStatsListener.class).in(Scopes.SINGLETON);
     bindFeatureInstance(
         new BundledTranslationProvider(
