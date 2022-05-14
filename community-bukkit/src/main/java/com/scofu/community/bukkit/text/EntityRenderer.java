@@ -1,4 +1,4 @@
-package com.scofu.community.bukkit;
+package com.scofu.community.bukkit.text;
 
 import com.google.inject.Inject;
 import com.scofu.text.Renderer;

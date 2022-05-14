@@ -1,4 +1,4 @@
-package com.scofu.community.bukkit;
+package com.scofu.community.bukkit.text;
 
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
@@ -9,44 +9,32 @@ import com.scofu.community.RankRepository;
 import com.scofu.community.Session;
 import com.scofu.community.User;
 import com.scofu.community.UserRepository;
-import com.scofu.mojang.profile.Profile;
-import com.scofu.mojang.profile.ProfileRepository;
 import com.scofu.text.Renderer;
 import com.scofu.text.Theme;
 import java.util.Optional;
-import java.util.UUID;
 import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
 
-final class UserRenderer implements Renderer<UUID> {
+final class PlayerRenderer implements Renderer<Player> {
 
-  private final ProfileRepository profileRepository;
   private final UserRepository userRepository;
   private final RankRepository rankRepository;
 
   @Inject
-  UserRenderer(
-      ProfileRepository profileRepository,
-      UserRepository userRepository,
-      RankRepository rankRepository) {
-    this.profileRepository = profileRepository;
+  PlayerRenderer(UserRepository userRepository, RankRepository rankRepository) {
     this.userRepository = userRepository;
     this.rankRepository = rankRepository;
   }
 
   @Override
-  public Class<UUID> type() {
-    return UUID.class;
+  public Class<Player> type() {
+    return Player.class;
   }
 
   @Override
-  public Optional<Component> render(Theme theme, UUID uuid) {
-    final var username =
-        profileRepository
-            .byUsernameOrId(uuid.toString())
-            .map(Profile::username)
-            .orElse("<unknown>");
-    final var name = text(username).color(theme.white());
-    final var user = userRepository.byId(uuid.toString());
+  public Optional<Component> render(Theme theme, Player player) {
+    final var name = text(player.getName()).color(theme.white());
+    final var user = userRepository.byId(player.getUniqueId().toString());
     final var formattedName =
         user.flatMap(User::session)
             .flatMap(Session::grant)
