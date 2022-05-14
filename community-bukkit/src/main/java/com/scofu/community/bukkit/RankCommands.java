@@ -32,9 +32,15 @@ final class RankCommands implements Feature {
   private final Json json;
 
   @Inject
-  RankCommands(Design design, LazyFactory lazyFactory, TagFactory tagFactory,
-      ThemeRegistry themeRegistry, RankRepository rankRepository, UserRepository userRepository,
-      WildcardPermissionChecker wildcardPermissionChecker, Json json) {
+  RankCommands(
+      Design design,
+      LazyFactory lazyFactory,
+      TagFactory tagFactory,
+      ThemeRegistry themeRegistry,
+      RankRepository rankRepository,
+      UserRepository userRepository,
+      WildcardPermissionChecker wildcardPermissionChecker,
+      Json json) {
     this.design = design;
     this.lazyFactory = lazyFactory;
     this.tagFactory = tagFactory;
@@ -57,17 +63,25 @@ final class RankCommands implements Feature {
   private void ranks(Expansion<Player> source, boolean confirm) {
     final var player = source.orElseThrow();
     if (!confirm) {
-      info().text("Please confirm!")
+      info()
+          .text("Please confirm!")
           .prefixed()
           .renderTo(themeRegistry.byIdentified(player), player::sendMessage);
       return;
     }
-    rankRepository.find(Query.empty())
-        .thenCompose(ranks -> CompletableFuture.allOf(
-            ranks.keySet().stream().map(rankRepository::delete).toArray(CompletableFuture[]::new)))
-        .thenAccept(unused -> success().text("You've deleted all ranks.")
-            .prefixed()
-            .renderTo(themeRegistry.byIdentified(player), player::sendMessage));
+    rankRepository
+        .find(Query.empty())
+        .thenCompose(
+            ranks ->
+                CompletableFuture.allOf(
+                    ranks.keySet().stream()
+                        .map(rankRepository::delete)
+                        .toArray(CompletableFuture[]::new)))
+        .thenAccept(
+            unused ->
+                success()
+                    .text("You've deleted all ranks.")
+                    .prefixed()
+                    .renderTo(themeRegistry.byIdentified(player), player::sendMessage));
   }
-
 }

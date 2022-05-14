@@ -27,14 +27,17 @@ final class ThemeListener implements Listener, Feature {
   @EventHandler
   private void onPlayerJoinEvent(PlayerJoinEvent event) {
     final var player = event.getPlayer();
-    userRepository.byId(player.getUniqueId().toString())
+    userRepository
+        .byId(player.getUniqueId().toString())
         .flatMap(User::theme)
         .flatMap(themeRegistry::byName)
         .or(() -> themeRegistry.byName("Vanilla"))
-        .ifPresent(theme -> {
-          themeRegistry.set(player, theme);
-          design.streamContainers(player)
-              .forEach(container -> container.draw(DrawReason.OTHER, true, true));
-        });
+        .ifPresent(
+            theme -> {
+              themeRegistry.set(player, theme);
+              design
+                  .streamContainers(player)
+                  .forEach(container -> container.draw(DrawReason.OTHER, true, true));
+            });
   }
 }

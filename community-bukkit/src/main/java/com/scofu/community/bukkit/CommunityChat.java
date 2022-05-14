@@ -14,9 +14,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
-/**
- * The default chat.
- */
+/** The default chat. */
 public class CommunityChat extends AbstractChat {
 
   private final Server server;
@@ -37,10 +35,13 @@ public class CommunityChat extends AbstractChat {
       sendRawMessage(translatable("unknown: %s", text(message)));
       return;
     }
-    sendThemedMessage(participant.identity(), MessageType.CHAT, theme -> {
-      final var playerComponent = rendererRegistry.render(theme, Player.class, player)
-          .orElse(Component.empty());
-      return playerComponent.append(text(": ").append(text(message)).color(theme.white()));
-    });
+    sendThemedMessage(
+        participant.identity(),
+        MessageType.CHAT,
+        theme -> {
+          final var playerComponent =
+              rendererRegistry.render(theme, Player.class, player).orElse(Component.empty());
+          return playerComponent.append(text(": ").append(text(message)).color(theme.white()));
+        });
   }
 }

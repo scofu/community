@@ -16,8 +16,12 @@ final class UserPermissibleBase extends PermissibleBase {
   private final RankRepository rankRepository;
   private final WildcardPermissionChecker wildcardPermissionChecker;
 
-  public UserPermissibleBase(ServerOperator opable, String id, UserRepository userRepository,
-      RankRepository rankRepository, WildcardPermissionChecker wildcardPermissionChecker) {
+  public UserPermissibleBase(
+      ServerOperator opable,
+      String id,
+      UserRepository userRepository,
+      RankRepository rankRepository,
+      WildcardPermissionChecker wildcardPermissionChecker) {
     super(opable);
     this.id = id;
     this.userRepository = userRepository;
@@ -27,7 +31,8 @@ final class UserPermissibleBase extends PermissibleBase {
 
   @Override
   public boolean hasPermission(String permission) {
-    return userRepository.byId(id)
+    return userRepository
+        .byId(id)
         .flatMap(User::session)
         .flatMap(Session::grant)
         .map(Grant::rankId)

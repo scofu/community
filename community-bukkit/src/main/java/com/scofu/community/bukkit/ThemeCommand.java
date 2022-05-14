@@ -27,5 +27,4 @@ final class ThemeCommand implements Feature {
     final var player = source.orElseThrow();
     design.bind(player, new ThemeSelectWindow(design, themeRegistry, userRepository));
   }
-
 }

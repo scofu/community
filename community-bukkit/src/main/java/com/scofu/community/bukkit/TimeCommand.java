@@ -26,13 +26,16 @@ final class TimeCommand implements Feature {
   private void time(Expansion<Player> source, Time time) {
     final var player = source.orElseThrow();
     player.setPlayerTime(time.ticks(), false);
-    info().text("Time set to %s.", time.name())
+    info()
+        .text("Time set to %s.", time.name())
         .prefixed()
         .renderTo(themeRegistry.byIdentified(player), player::sendMessage);
-    userRepository.byId(player.getUniqueId().toString()).ifPresent(user -> {
-      user.setTime(time);
-      userRepository.update(user);
-    });
+    userRepository
+        .byId(player.getUniqueId().toString())
+        .ifPresent(
+            user -> {
+              user.setTime(time);
+              userRepository.update(user);
+            });
   }
-
 }

@@ -25,9 +25,13 @@ final class GenericStatsListener implements Listener, Feature {
   private void onPlayerJoinEvent(PlayerJoinEvent event) {
     final var player = event.getPlayer();
     genericStatsRepository.delete(player.getUniqueId().toString()).join();
-    final var stats = genericStatsRepository.byId(player.getUniqueId().toString())
-        .orElseGet(() -> lazyFactory.create(GenericStats.class, GenericStats::id,
-            player.getUniqueId().toString()));
+    final var stats =
+        genericStatsRepository
+            .byId(player.getUniqueId().toString())
+            .orElseGet(
+                () ->
+                    lazyFactory.create(
+                        GenericStats.class, GenericStats::id, player.getUniqueId().toString()));
     stats.setLastLoginAt(Instant.now());
     genericStatsRepository.update(stats);
   }

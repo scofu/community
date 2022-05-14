@@ -32,9 +32,13 @@ final class UserListener implements Feature, Listener {
   private final LazyFactory lazyFactory;
 
   @Inject
-  UserListener(UserRepository userRepository, GrantRepository grantRepository,
-      @Named("LocalHost") InetAddress localHost, StaffChat staffChat,
-      ParticipantRegistry participantRegistry, LazyFactory lazyFactory) {
+  UserListener(
+      UserRepository userRepository,
+      GrantRepository grantRepository,
+      @Named("LocalHost") InetAddress localHost,
+      StaffChat staffChat,
+      ParticipantRegistry participantRegistry,
+      LazyFactory lazyFactory) {
     this.userRepository = userRepository;
     this.grantRepository = grantRepository;
     this.localHost = localHost;
@@ -49,9 +53,12 @@ final class UserListener implements Feature, Listener {
       return;
     }
     final var id = event.getPlayer().getUniqueId().toString();
-    final var user = userRepository.byId(id)
-        .orElseGet(
-            () -> lazyFactory.create(User.class, User::id, id, User::firstJoinAt, Instant.now()));
+    final var user =
+        userRepository
+            .byId(id)
+            .orElseGet(
+                () ->
+                    lazyFactory.create(User.class, User::id, id, User::firstJoinAt, Instant.now()));
     Session session = null;
     if (user.hasSession()) {
       session = user.session().orElseThrow();
@@ -66,8 +73,13 @@ final class UserListener implements Feature, Listener {
     grantRepository.byUserId(user.id()).join().findFirst().ifPresent(session::setGrant);
     user.setSession(session);
 
-    final var userLoginEvent = new UserLoginEvent(event.getPlayer(), event.getHostname(),
-        event.getAddress(), event.getRealAddress(), user);
+    final var userLoginEvent =
+        new UserLoginEvent(
+            event.getPlayer(),
+            event.getHostname(),
+            event.getAddress(),
+            event.getRealAddress(),
+            user);
     event.getPlayer().getServer().getPluginManager().callEvent(userLoginEvent);
     userRepository.update(user);
   }
@@ -82,5 +94,4 @@ final class UserListener implements Feature, Listener {
     staffChat.sendRawMessage(
         translatable("%s joined %s.", text(player.getName()), text(localHost.getHostName())));
   }
-
 }

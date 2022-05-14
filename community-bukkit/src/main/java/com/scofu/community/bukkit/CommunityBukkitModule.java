@@ -9,9 +9,7 @@ import com.scofu.community.bukkit.permission.PermissionModule;
 import com.scofu.text.BundledTranslationProvider;
 import java.util.Locale;
 
-/**
- * Community bukkit module.
- */
+/** Community bukkit module. */
 @Module
 public class CommunityBukkitModule extends AbstractFeatureModule {
 
@@ -38,7 +36,8 @@ public class CommunityBukkitModule extends AbstractFeatureModule {
     bindFeature(ThemeListener.class).in(Scopes.SINGLETON);
     bindFeature(DesignListener.class).in(Scopes.SINGLETON);
     bindFeature(GenericStatsListener.class).in(Scopes.SINGLETON);
-    bindFeatureInstance(new BundledTranslationProvider(Locale.US, "community-bukkit_en_US",
-        CommunityBukkitModule.class.getClassLoader()));
+    bindFeatureInstance(
+        new BundledTranslationProvider(
+            Locale.US, "community-bukkit_en_US", CommunityBukkitModule.class.getClassLoader()));
   }
 }

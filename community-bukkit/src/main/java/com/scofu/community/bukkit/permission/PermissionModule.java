@@ -3,9 +3,7 @@ package com.scofu.community.bukkit.permission;
 import com.google.inject.Scopes;
 import com.scofu.common.inject.AbstractFeatureModule;
 
-/**
- * Permission module.
- */
+/** Permission module. */
 public class PermissionModule extends AbstractFeatureModule {
 
   @Override

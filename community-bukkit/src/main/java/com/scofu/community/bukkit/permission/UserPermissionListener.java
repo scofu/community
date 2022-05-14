@@ -14,7 +14,6 @@ final class UserPermissionListener implements Feature, Listener {
 
   private static final Field FIELD;
 
-
   static {
     try {
       FIELD = CraftHumanEntity.class.getDeclaredField("perm");
@@ -29,7 +28,9 @@ final class UserPermissionListener implements Feature, Listener {
   private final WildcardPermissionChecker wildcardPermissionChecker;
 
   @Inject
-  UserPermissionListener(UserRepository userRepository, RankRepository rankRepository,
+  UserPermissionListener(
+      UserRepository userRepository,
+      RankRepository rankRepository,
       WildcardPermissionChecker wildcardPermissionChecker) {
     this.userRepository = userRepository;
     this.rankRepository = rankRepository;
@@ -39,12 +40,16 @@ final class UserPermissionListener implements Feature, Listener {
   @EventHandler
   private void onUserLoginEvent(UserLoginEvent event) {
     try {
-      FIELD.set(event.player(),
-          new UserPermissibleBase(event.player(), event.user().id(), userRepository, rankRepository,
+      FIELD.set(
+          event.player(),
+          new UserPermissibleBase(
+              event.player(),
+              event.user().id(),
+              userRepository,
+              rankRepository,
               wildcardPermissionChecker));
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     }
   }
-
 }

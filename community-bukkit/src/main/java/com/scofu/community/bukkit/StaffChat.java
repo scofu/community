@@ -22,9 +22,7 @@ import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 
-/**
- * Staff chat.
- */
+/** Staff chat. */
 public class StaffChat extends AbstractChat {
 
   private final QueueBuilder<StaffChatParticipantMessage, Void> participantQueue;
@@ -33,18 +31,26 @@ public class StaffChat extends AbstractChat {
   private final Tag tag;
 
   @Inject
-  StaffChat(MessageQueue messageQueue, MessageFlow messageFlow, ThemeRegistry themeRegistry,
-      RendererRegistry rendererRegistry, TagFactory tagFactory) {
+  StaffChat(
+      MessageQueue messageQueue,
+      MessageFlow messageFlow,
+      ThemeRegistry themeRegistry,
+      RendererRegistry rendererRegistry,
+      TagFactory tagFactory) {
     super(translatable("Staff"), themeRegistry);
-    this.participantQueue = messageQueue.declareFor(StaffChatParticipantMessage.class)
-        .withTopic("scofu.platform.staffchat");
-    this.rawQueue = messageQueue.declareFor(StaffChatRawMessage.class)
-        .withTopic("scofu.platform.staffchat");
+    this.participantQueue =
+        messageQueue
+            .declareFor(StaffChatParticipantMessage.class)
+            .withTopic("scofu.platform.staffchat");
+    this.rawQueue =
+        messageQueue.declareFor(StaffChatRawMessage.class).withTopic("scofu.platform.staffchat");
     this.rendererRegistry = rendererRegistry;
-    messageFlow.subscribeTo(StaffChatParticipantMessage.class)
+    messageFlow
+        .subscribeTo(StaffChatParticipantMessage.class)
         .withTopic("scofu.platform.staffchat")
         .via(this::onStaffChatParticipantMessage);
-    messageFlow.subscribeTo(StaffChatRawMessage.class)
+    messageFlow
+        .subscribeTo(StaffChatRawMessage.class)
         .withTopic("scofu.platform.staffchat")
         .via(this::onStaffChatRawMessage);
     map(PrefixBasedChatResolver.PREFIX_IDENTIFIER).to("@");
@@ -62,18 +68,29 @@ public class StaffChat extends AbstractChat {
   }
 
   private void onStaffChatParticipantMessage(StaffChatParticipantMessage message) {
-    sendThemedMessage(Identity.identity(message.senderId()), MessageType.CHAT, theme -> {
-      final var user = rendererRegistry.render(theme, UUID.class, message.senderId())
-          .orElse(Component.empty());
-      return translatable("%s %s", tag.render(theme).orElse(Component.empty()),
-          user.append(text(": ").append(text(message.message()).color(theme.white()))));
-    });
+    sendThemedMessage(
+        Identity.identity(message.senderId()),
+        MessageType.CHAT,
+        theme -> {
+          final var user =
+              rendererRegistry
+                  .render(theme, UUID.class, message.senderId())
+                  .orElse(Component.empty());
+          return translatable(
+              "%s %s",
+              tag.render(theme).orElse(Component.empty()),
+              user.append(text(": ").append(text(message.message()).color(theme.white()))));
+        });
   }
 
   private void onStaffChatRawMessage(StaffChatRawMessage message) {
-    sendThemedMessage(Identity.nil(), MessageType.SYSTEM,
-        theme -> translatable("%s %s", tag.render(theme).orElse(Component.empty()),
-            message.component().color(theme.white())));
+    sendThemedMessage(
+        Identity.nil(),
+        MessageType.SYSTEM,
+        theme ->
+            translatable(
+                "%s %s",
+                tag.render(theme).orElse(Component.empty()),
+                message.component().color(theme.white())));
   }
-
 }

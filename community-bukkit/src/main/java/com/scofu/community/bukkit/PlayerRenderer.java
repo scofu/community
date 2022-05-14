@@ -35,19 +35,20 @@ final class PlayerRenderer implements Renderer<Player> {
   public Optional<Component> render(Theme theme, Player player) {
     final var name = text(player.getName()).color(theme.white());
     final var user = userRepository.byId(player.getUniqueId().toString());
-    final var formattedName = user.flatMap(User::session)
-        .flatMap(Session::grant)
-        .map(Grant::rankId)
-        .flatMap(rankRepository::byId)
-        .map(rank -> {
-          final var coloredName = rank.nameColor()
-              .map(color -> color.render(theme, name))
-              .orElse(name);
-          return rank.render(theme)
-              .<Component>map(tag -> translatable("%s %s", tag, coloredName))
-              .orElse(coloredName);
-        })
-        .orElse(name);
+    final var formattedName =
+        user.flatMap(User::session)
+            .flatMap(Session::grant)
+            .map(Grant::rankId)
+            .flatMap(rankRepository::byId)
+            .map(
+                rank -> {
+                  final var coloredName =
+                      rank.nameColor().map(color -> color.render(theme, name)).orElse(name);
+                  return rank.render(theme)
+                      .<Component>map(tag -> translatable("%s %s", tag, coloredName))
+                      .orElse(coloredName);
+                })
+            .orElse(name);
     return Optional.of(formattedName);
   }
 }

@@ -36,18 +36,21 @@ final class DesignListener implements Listener, Feature {
   static {
     final var format = DateTimeFormatter.ofPattern("MM/dd/yy", Locale.US);
     final var zoneId = ZoneId.of("Europe/Stockholm");
-    DATE_SUPPLIER = Suppliers.memoizeWithExpiration(
-        () -> StringUtils.capitalize(format.format(ZonedDateTime.now(zoneId))), 5,
-        TimeUnit.MINUTES);
+    DATE_SUPPLIER =
+        Suppliers.memoizeWithExpiration(
+            () -> StringUtils.capitalize(format.format(ZonedDateTime.now(zoneId))),
+            5,
+            TimeUnit.MINUTES);
   }
 
   private final RendererRegistry rendererRegistry;
   private final Design design;
   private final LocalInstanceProvider localInstanceProvider;
 
-
   @Inject
-  DesignListener(RendererRegistry rendererRegistry, Design design,
+  DesignListener(
+      RendererRegistry rendererRegistry,
+      Design design,
       LocalInstanceProvider localInstanceProvider) {
     this.rendererRegistry = rendererRegistry;
     this.design = design;
@@ -57,38 +60,59 @@ final class DesignListener implements Listener, Feature {
   @EventHandler(priority = EventPriority.LOWEST)
   private void onSidebarBoundEvent(SidebarBoundEvent event) {
     final var instance = localInstanceProvider.get().join();
-    event.sidebar()
-        .setTitle(viewer -> text(instance.deployment().name().toUpperCase()).decoration(
-            TextDecoration.BOLD, State.TRUE).color(viewer.theme().brightYellow()));
-    event.sidebar().use((viewer, components) -> {
-      components.add(text(DATE_SUPPLIER.get()).color(viewer.theme().white())
-          .append(text(" " + instance.id()).color(viewer.theme().brightBlack())));
-    });
+    event
+        .sidebar()
+        .setTitle(
+            viewer ->
+                text(instance.deployment().name().toUpperCase())
+                    .decoration(TextDecoration.BOLD, State.TRUE)
+                    .color(viewer.theme().brightYellow()));
+    event
+        .sidebar()
+        .use(
+            (viewer, components) -> {
+              components.add(
+                  text(DATE_SUPPLIER.get())
+                      .color(viewer.theme().white())
+                      .append(text(" " + instance.id()).color(viewer.theme().brightBlack())));
+            });
   }
 
   @EventHandler
   private void onPlayerJoinEvent(PlayerJoinEvent event) {
     final var player = event.getPlayer();
-    design.bind(player, new Tablist(TickSpeed.NORMAL)).use((viewer, entries) -> {
-      int slot = 0;
-      for (var onlinePlayer : player.getServer().getOnlinePlayers()) {
-        final var textures = onlinePlayer.getPlayerProfile()
-            .getProperties()
-            .stream()
-            .filter(property -> property.getName().equalsIgnoreCase("textures"))
-            .findFirst()
-            .orElse(null);
-        final var entry = new TablistEntry(
-            rendererRegistry.render(viewer.theme(), Player.class, onlinePlayer).orElse(empty()),
-            onlinePlayer.getPing(), textures == null ? null : textures.getValue(),
-            textures == null ? null : textures.getSignature());
-        entries[slot++] = entry;
-      }
-      slot++;
-      entries[slot] = TablistEntry.of(viewer.theme()
-          .render(theme -> translatable("Your ping: %s",
-              text(player.getPing()).color(theme.brightGreen())).color(theme.brightWhite())));
-    });
+    design
+        .bind(player, new Tablist(TickSpeed.NORMAL))
+        .use(
+            (viewer, entries) -> {
+              int slot = 0;
+              for (var onlinePlayer : player.getServer().getOnlinePlayers()) {
+                final var textures =
+                    onlinePlayer.getPlayerProfile().getProperties().stream()
+                        .filter(property -> property.getName().equalsIgnoreCase("textures"))
+                        .findFirst()
+                        .orElse(null);
+                final var entry =
+                    new TablistEntry(
+                        rendererRegistry
+                            .render(viewer.theme(), Player.class, onlinePlayer)
+                            .orElse(empty()),
+                        onlinePlayer.getPing(),
+                        textures == null ? null : textures.getValue(),
+                        textures == null ? null : textures.getSignature());
+                entries[slot++] = entry;
+              }
+              slot++;
+              entries[slot] =
+                  TablistEntry.of(
+                      viewer
+                          .theme()
+                          .render(
+                              theme ->
+                                  translatable(
+                                          "Your ping: %s",
+                                          text(player.getPing()).color(theme.brightGreen()))
+                                      .color(theme.brightWhite())));
+            });
   }
-
 }

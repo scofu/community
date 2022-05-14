@@ -21,7 +21,8 @@ final class TimeListener implements Listener, Feature {
   @EventHandler
   private void onPlayerJoinEvent(PlayerJoinEvent event) {
     final var player = event.getPlayer();
-    userRepository.byId(player.getUniqueId().toString())
+    userRepository
+        .byId(player.getUniqueId().toString())
         .flatMap(User::time)
         .map(Time::ticks)
         .ifPresent(ticks -> player.setPlayerTime(ticks, false));

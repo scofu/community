@@ -24,7 +24,9 @@ final class UserRenderer implements Renderer<UUID> {
   private final RankRepository rankRepository;
 
   @Inject
-  UserRenderer(ProfileRepository profileRepository, UserRepository userRepository,
+  UserRenderer(
+      ProfileRepository profileRepository,
+      UserRepository userRepository,
       RankRepository rankRepository) {
     this.profileRepository = profileRepository;
     this.userRepository = userRepository;
@@ -38,24 +40,27 @@ final class UserRenderer implements Renderer<UUID> {
 
   @Override
   public Optional<Component> render(Theme theme, UUID uuid) {
-    final var username = profileRepository.byUsernameOrId(uuid.toString())
-        .map(Profile::username)
-        .orElse("<unknown>");
+    final var username =
+        profileRepository
+            .byUsernameOrId(uuid.toString())
+            .map(Profile::username)
+            .orElse("<unknown>");
     final var name = text(username).color(theme.white());
     final var user = userRepository.byId(uuid.toString());
-    final var formattedName = user.flatMap(User::session)
-        .flatMap(Session::grant)
-        .map(Grant::rankId)
-        .flatMap(rankRepository::byId)
-        .map(rank -> {
-          final var coloredName = rank.nameColor()
-              .map(color -> color.render(theme, name))
-              .orElse(name);
-          return rank.render(theme)
-              .<Component>map(tag -> translatable("%s %s", tag, coloredName))
-              .orElse(coloredName);
-        })
-        .orElse(name);
+    final var formattedName =
+        user.flatMap(User::session)
+            .flatMap(Session::grant)
+            .map(Grant::rankId)
+            .flatMap(rankRepository::byId)
+            .map(
+                rank -> {
+                  final var coloredName =
+                      rank.nameColor().map(color -> color.render(theme, name)).orElse(name);
+                  return rank.render(theme)
+                      .<Component>map(tag -> translatable("%s %s", tag, coloredName))
+                      .orElse(coloredName);
+                })
+            .orElse(name);
     return Optional.of(formattedName);
   }
 }
