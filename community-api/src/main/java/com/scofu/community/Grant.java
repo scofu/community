@@ -6,28 +6,32 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
-/**
- * A grant.
- */
+/** A grant. */
 public interface Grant extends Lazy, Document {
 
+  /** Returns the optional duration left. */
   default Optional<Duration> durationLeft() {
     return expireAt().map(instant -> Duration.between(Instant.now(), instant));
   }
 
+  /** Returns whether this grant has expired or not. */
   default boolean hasExpired() {
-    return durationLeft().filter(duration -> duration.isNegative() || duration.isZero())
+    return durationLeft()
+        .filter(duration -> duration.isNegative() || duration.isZero())
         .isPresent();
   }
 
+  /** Returns whether this grant is permanent or not. */
   default boolean isPermanent() {
     return expireAt().isEmpty();
   }
 
+  /** Returns whether this grant has been revoked or not. */
   default boolean isRevoked() {
     return revokedAt().isPresent();
   }
 
+  /** Returns whether this grant is active or not. */
   default boolean isActive() {
     return !isRevoked() && !hasExpired();
   }
@@ -47,7 +51,7 @@ public interface Grant extends Lazy, Document {
   /**
    * Revokes this grant.
    *
-   * @param revokerId    the revoker id
+   * @param revokerId the revoker id
    * @param revokeReason the revoke reason
    */
   default void revoke(String revokerId, String revokeReason) {

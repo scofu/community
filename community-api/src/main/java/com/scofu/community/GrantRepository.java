@@ -16,20 +16,26 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
-/**
- * Grant repository.
- */
+/** Grant repository. */
 public class GrantRepository extends AbstractDocumentRepository<Grant> {
 
   private final RankRepository rankRepository;
 
   @Inject
-  GrantRepository(MessageQueue messageQueue, MessageFlow messageFlow, Json json,
+  GrantRepository(
+      MessageQueue messageQueue,
+      MessageFlow messageFlow,
+      Json json,
       RankRepository rankRepository) {
-    super(messageQueue, messageFlow, Grant.class, json, RepositoryConfiguration.builder()
-        .withCollection("scofu.grants")
-        .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
-        .build());
+    super(
+        messageQueue,
+        messageFlow,
+        Grant.class,
+        json,
+        RepositoryConfiguration.builder()
+            .withCollection("scofu.grants")
+            .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
+            .build());
     this.rankRepository = rankRepository;
   }
 
@@ -39,12 +45,14 @@ public class GrantRepository extends AbstractDocumentRepository<Grant> {
    * @param rankId the rank id
    */
   public CompletableFuture<Stream<Grant>> byRankId(String rankId) {
-    return find(Query.builder().filter(where("rankId", equalsTo(rankId))).build()).thenApplyAsync(
-        map -> map.values()
-            .stream()
-            .filter(Grant::isActive)
-            .sorted(Comparator.comparing(
-                grant -> rankRepository.byId(grant.rankId()).orElse(Rank.empty()))));
+    return find(Query.builder().filter(where("rankId", equalsTo(rankId))).build())
+        .thenApplyAsync(
+            map ->
+                map.values().stream()
+                    .filter(Grant::isActive)
+                    .sorted(
+                        Comparator.comparing(
+                            grant -> rankRepository.byId(grant.rankId()).orElse(Rank.empty()))));
   }
 
   /**
@@ -53,12 +61,14 @@ public class GrantRepository extends AbstractDocumentRepository<Grant> {
    * @param userId the user id
    */
   public CompletableFuture<Stream<Grant>> byUserId(String userId) {
-    return find(Query.builder().filter(where("userId", equalsTo(userId))).build()).thenApplyAsync(
-        map -> map.values()
-            .stream()
-            .filter(Grant::isActive)
-            .sorted(Comparator.comparing(
-                grant -> rankRepository.byId(grant.rankId()).orElse(Rank.empty()))));
+    return find(Query.builder().filter(where("userId", equalsTo(userId))).build())
+        .thenApplyAsync(
+            map ->
+                map.values().stream()
+                    .filter(Grant::isActive)
+                    .sorted(
+                        Comparator.comparing(
+                            grant -> rankRepository.byId(grant.rankId()).orElse(Rank.empty()))));
   }
 
   /**
@@ -67,10 +77,12 @@ public class GrantRepository extends AbstractDocumentRepository<Grant> {
    * @param userId the user id
    */
   public CompletableFuture<Stream<Grant>> allByUserId(String userId) {
-    return find(Query.builder().filter(where("userId", equalsTo(userId))).build()).thenApplyAsync(
-        map -> map.values()
-            .stream()
-            .sorted(Comparator.comparing(
-                grant -> rankRepository.byId(grant.rankId()).orElse(Rank.empty()))));
+    return find(Query.builder().filter(where("userId", equalsTo(userId))).build())
+        .thenApplyAsync(
+            map ->
+                map.values().stream()
+                    .sorted(
+                        Comparator.comparing(
+                            grant -> rankRepository.byId(grant.rankId()).orElse(Rank.empty()))));
   }
 }

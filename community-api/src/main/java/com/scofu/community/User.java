@@ -5,9 +5,7 @@ import com.scofu.network.document.Document;
 import java.time.Instant;
 import java.util.Optional;
 
-/**
- * A user.
- */
+/** A user. */
 public interface User extends Lazy, Document {
 
   default boolean isOnline() {
@@ -29,5 +27,4 @@ public interface User extends Lazy, Document {
   Optional<String> theme();
 
   void setTheme(String theme);
-
 }

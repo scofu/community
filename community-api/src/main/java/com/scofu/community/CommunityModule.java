@@ -4,9 +4,7 @@ import com.google.inject.Scopes;
 import com.scofu.common.inject.AbstractFeatureModule;
 import com.scofu.common.inject.annotation.Module;
 
-/**
- * Community module.
- */
+/** Community module. */
 @Module
 public class CommunityModule extends AbstractFeatureModule {
 

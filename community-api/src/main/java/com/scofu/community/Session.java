@@ -5,9 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
-/**
- * A session.
- */
+/** A session. */
 public interface Session extends Lazy {
 
   default Duration playtime() {

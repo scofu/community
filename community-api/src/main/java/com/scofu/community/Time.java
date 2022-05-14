@@ -1,10 +1,7 @@
 package com.scofu.community;
 
-/**
- * Time.
- */
+/** Time. */
 public enum Time {
-
   MORNING(0),
   DAY(6000),
   EVENING(12500),

@@ -5,9 +5,7 @@ import com.scofu.network.document.Document;
 import java.time.Instant;
 import java.util.Optional;
 
-/**
- * Generic stats.
- */
+/** Generic stats. */
 public interface GenericStats extends Lazy, Document {
 
   int coins();

@@ -10,27 +10,33 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
-/**
- * User repository.
- */
+/** User repository. */
 public class UserRepository extends AbstractDocumentRepository<User> {
 
   private final RankRepository rankRepository;
 
   @Inject
-  UserRepository(MessageQueue messageQueue, MessageFlow messageFlow, Json json,
+  UserRepository(
+      MessageQueue messageQueue,
+      MessageFlow messageFlow,
+      Json json,
       RankRepository rankRepository) {
-    super(messageQueue, messageFlow, User.class, json, RepositoryConfiguration.builder()
-        .withCollection("scofu.users")
-        .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
-        .build());
+    super(
+        messageQueue,
+        messageFlow,
+        User.class,
+        json,
+        RepositoryConfiguration.builder()
+            .withCollection("scofu.users")
+            .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
+            .build());
     this.rankRepository = rankRepository;
   }
 
   /**
    * Resolves and returns whether the given user has the given permission or not.
    *
-   * @param user       the user
+   * @param user the user
    * @param permission the permission
    */
   public Optional<Boolean> resolvePermission(User user, String permission) {

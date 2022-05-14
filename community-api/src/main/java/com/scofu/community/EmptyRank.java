@@ -18,9 +18,7 @@ final class EmptyRank implements Rank {
   }
 
   @Override
-  public void setName(String name) {
-
-  }
+  public void setName(String name) {}
 
   @Override
   public Optional<Tag> tag() {
@@ -28,9 +26,7 @@ final class EmptyRank implements Rank {
   }
 
   @Override
-  public void setTag(Tag tag) {
-
-  }
+  public void setTag(Tag tag) {}
 
   @Override
   public int priority() {
@@ -48,9 +44,7 @@ final class EmptyRank implements Rank {
   }
 
   @Override
-  public void setPriority(int priority) {
-
-  }
+  public void setPriority(int priority) {}
 
   @Override
   public Optional<Color> nameColor() {
@@ -58,9 +52,7 @@ final class EmptyRank implements Rank {
   }
 
   @Override
-  public void setNameColor(Color nameColor) {
-
-  }
+  public void setNameColor(Color nameColor) {}
 
   @Override
   public Optional<Map<PeriodEscapedString, Boolean>> permissions() {
@@ -68,9 +60,7 @@ final class EmptyRank implements Rank {
   }
 
   @Override
-  public void setPermissions(Map<PeriodEscapedString, Boolean> permissions) {
-
-  }
+  public void setPermissions(Map<PeriodEscapedString, Boolean> permissions) {}
 
   @Override
   public Optional<Set<String>> inheritance() {
@@ -78,9 +68,7 @@ final class EmptyRank implements Rank {
   }
 
   @Override
-  public void setInheritance(Set<String> inheritance) {
-
-  }
+  public void setInheritance(Set<String> inheritance) {}
 
   @Override
   public Any any() {

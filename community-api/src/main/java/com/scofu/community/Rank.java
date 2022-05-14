@@ -15,9 +15,7 @@ import java.util.Set;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A rank.
- */
+/** A rank. */
 public interface Rank extends Lazy, Document, Renderable, Comparable<Rank> {
 
   static Rank empty() {
@@ -52,7 +50,7 @@ public interface Rank extends Lazy, Document, Renderable, Comparable<Rank> {
    * See {@link Map#put(Object, Object)}.
    *
    * @param string the string
-   * @param value  the value
+   * @param value the value
    */
   default Boolean addPermission(PeriodEscapedString string, Boolean value) {
     var permissions = permissions().orElseGet(Maps::newConcurrentMap);

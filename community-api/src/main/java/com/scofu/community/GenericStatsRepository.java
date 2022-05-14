@@ -9,16 +9,19 @@ import com.scofu.network.message.MessageQueue;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
-/**
- * Generic stats repository.
- */
+/** Generic stats repository. */
 public class GenericStatsRepository extends AbstractDocumentRepository<GenericStats> {
 
   @Inject
   GenericStatsRepository(MessageQueue messageQueue, MessageFlow messageFlow, Json json) {
-    super(messageQueue, messageFlow, GenericStats.class, json, RepositoryConfiguration.builder()
-        .withCollection("scofu.generic_stats")
-        .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
-        .build());
+    super(
+        messageQueue,
+        messageFlow,
+        GenericStats.class,
+        json,
+        RepositoryConfiguration.builder()
+            .withCollection("scofu.generic_stats")
+            .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
+            .build());
   }
 }
