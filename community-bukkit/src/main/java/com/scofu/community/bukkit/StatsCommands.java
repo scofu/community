@@ -222,12 +222,11 @@ final class StatsCommands implements Feature {
                               profile.textures().raw().signature()));
                     });
                 onClick(
-                    () -> {
-                      debug()
-                          .text("bing bong")
-                          .prefixed()
-                          .renderTo(viewer().theme(), viewer().player()::sendMessage);
-                    });
+                    () ->
+                        debug()
+                            .text("bing bong")
+                            .prefixed()
+                            .render(viewer().player()::sendMessage));
               }
             });
     design

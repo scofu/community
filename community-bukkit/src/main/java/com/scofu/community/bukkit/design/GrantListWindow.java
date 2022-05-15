@@ -18,6 +18,7 @@ import com.scofu.design.bukkit.item.ItemBuilder;
 import com.scofu.design.bukkit.window.ConfirmWindow;
 import com.scofu.design.bukkit.window.PaginatedWindow;
 import com.scofu.design.bukkit.window.Window;
+import com.scofu.text.Color;
 import com.scofu.text.Time;
 import java.time.Duration;
 import java.time.Instant;
@@ -79,10 +80,10 @@ public final class GrantListWindow extends PaginatedWindow {
                                                 grant.issuedAt(), ZoneId.systemDefault()))
                                         .color(
                                             grant.isRevoked()
-                                                ? viewer().theme().brightRed()
+                                                ? Color.BRIGHT_RED
                                                 : grant.hasExpired()
-                                                    ? viewer().theme().brightYellow()
-                                                    : viewer().theme().brightGreen()))
+                                                    ? Color.BRIGHT_YELLOW
+                                                    : Color.BRIGHT_GREEN))
                                 .adopt(childBuilder -> formatMeta(grant, childBuilder)))
                     .onClick(
                         event -> {
@@ -117,8 +118,7 @@ public final class GrantListWindow extends PaginatedWindow {
                                       error()
                                           .text("Timed out.")
                                           .prefixed()
-                                          .renderTo(
-                                              viewer().theme(), viewer().player()::sendMessage);
+                                          .render(viewer().player()::sendMessage);
                                       design().bind(viewer().player(), this);
                                       return;
                                     }

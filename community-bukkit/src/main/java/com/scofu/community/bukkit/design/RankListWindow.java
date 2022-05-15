@@ -60,11 +60,9 @@ final class RankListWindow extends PaginatedWindow {
             builder ->
                 builder
                     .ofType(Material.NAME_TAG)
-                    .withName(
-                        text(rank.name())
-                            .color(rank.nameColor().orElse(Color.WHITE).toColor(viewer().theme())))
+                    .withName(text(rank.name()).color(rank.nameColor().orElse(Color.WHITE)))
                     .withTag(translatable("Priority: %s", text(rank.priority())))
-                    .withTag(translatable("Tag: %s", rank.render(viewer().theme()).orElse(empty())))
+                    .withTag(translatable("Tag: %s", rank.render().orElse(empty())))
                     .withFooter(text("Click to edit!"))
                     .withFooter(text("Shift+Click to delete!")))
         .onClick(

@@ -1,8 +1,8 @@
 package com.scofu.community.bukkit.design;
 
+import static com.scofu.text.EntryComponent.entry;
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.Component.translatable;
 
 import com.google.common.base.Suppliers;
 import com.google.inject.Inject;
@@ -13,6 +13,7 @@ import com.scofu.design.bukkit.sidebar.event.SidebarBoundEvent;
 import com.scofu.design.bukkit.tablist.Tablist;
 import com.scofu.design.bukkit.tablist.TablistEntry;
 import com.scofu.network.instance.bukkit.LocalInstanceProvider;
+import com.scofu.text.Color;
 import com.scofu.text.RendererRegistry;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -66,15 +67,15 @@ final class DesignListener implements Listener, Feature {
             viewer ->
                 text(instance.deployment().name().toUpperCase())
                     .decoration(TextDecoration.BOLD, State.TRUE)
-                    .color(viewer.theme().brightYellow()));
+                    .color(Color.BRIGHT_YELLOW));
     event
         .sidebar()
         .use(
             (viewer, components) -> {
               components.add(
                   text(DATE_SUPPLIER.get())
-                      .color(viewer.theme().white())
-                      .append(text(" " + instance.id()).color(viewer.theme().brightBlack())));
+                      .color(Color.WHITE)
+                      .append(text(" " + instance.id()).color(Color.BRIGHT_BLACK)));
             });
   }
 
@@ -94,25 +95,14 @@ final class DesignListener implements Listener, Feature {
                         .orElse(null);
                 final var entry =
                     new TablistEntry(
-                        rendererRegistry
-                            .render(viewer.theme(), Player.class, onlinePlayer)
-                            .orElse(empty()),
+                        rendererRegistry.render(Player.class, onlinePlayer).orElse(empty()),
                         onlinePlayer.getPing(),
                         textures == null ? null : textures.getValue(),
                         textures == null ? null : textures.getSignature());
                 entries[slot++] = entry;
               }
               slot++;
-              entries[slot] =
-                  TablistEntry.of(
-                      viewer
-                          .theme()
-                          .render(
-                              theme ->
-                                  translatable(
-                                          "Your ping: %s",
-                                          text(player.getPing()).color(theme.brightGreen()))
-                                      .color(theme.brightWhite())));
+              entries[slot] = TablistEntry.of(entry("Your ping: %s", player.getPing()));
             });
   }
 }

@@ -9,8 +9,8 @@ import com.scofu.community.RankRepository;
 import com.scofu.community.Session;
 import com.scofu.community.User;
 import com.scofu.community.UserRepository;
+import com.scofu.text.Color;
 import com.scofu.text.Renderer;
-import com.scofu.text.Theme;
 import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
@@ -32,8 +32,8 @@ final class PlayerRenderer implements Renderer<Player> {
   }
 
   @Override
-  public Optional<Component> render(Theme theme, Player player) {
-    final var name = text(player.getName()).color(theme.white());
+  public Optional<Component> render(Player player) {
+    final var name = text(player.getName()).color(Color.WHITE);
     final var user = userRepository.byId(player.getUniqueId().toString());
     final var formattedName =
         user.flatMap(User::session)
@@ -43,8 +43,8 @@ final class PlayerRenderer implements Renderer<Player> {
             .map(
                 rank -> {
                   final var coloredName =
-                      rank.nameColor().map(color -> color.render(theme, name)).orElse(name);
-                  return rank.render(theme)
+                      rank.nameColor().map(color -> color.render(name)).orElse(name);
+                  return rank.render()
                       .<Component>map(tag -> translatable("%s %s", tag, coloredName))
                       .orElse(coloredName);
                 })

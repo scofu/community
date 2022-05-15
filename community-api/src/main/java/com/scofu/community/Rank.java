@@ -7,7 +7,6 @@ import com.scofu.common.json.lazy.Lazy;
 import com.scofu.network.document.Document;
 import com.scofu.text.Color;
 import com.scofu.text.Renderable;
-import com.scofu.text.Theme;
 import com.scofu.text.json.Tag;
 import java.util.Map;
 import java.util.Optional;
@@ -124,7 +123,7 @@ public interface Rank extends Lazy, Document, Renderable, Comparable<Rank> {
   }
 
   @Override
-  default Optional<Component> render(Theme theme) {
-    return tag().flatMap(tag -> tag.render(theme));
+  default Optional<Component> render() {
+    return tag().flatMap(Renderable::render);
   }
 }

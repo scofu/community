@@ -4,11 +4,10 @@ import static com.scofu.design.bukkit.item.Button.button;
 import static net.kyori.adventure.text.Component.text;
 
 import com.google.inject.Inject;
-import com.scofu.community.User;
-import com.scofu.community.UserRepository;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
+import com.scofu.network.instance.SystemRepository;
 import com.scofu.text.Theme;
 import com.scofu.text.ThemeRegistry;
 import java.util.Comparator;
@@ -21,25 +20,21 @@ import org.bukkit.Material;
 public final class ThemeSelectWindow extends PaginatedWindow {
 
   private final ThemeRegistry themeRegistry;
-  private final UserRepository userRepository;
+  private final SystemRepository systemRepository;
   private final Design design;
   private String selectedTheme;
 
   @Inject
-  ThemeSelectWindow(Design design, ThemeRegistry themeRegistry, UserRepository userRepository) {
+  ThemeSelectWindow(Design design, ThemeRegistry themeRegistry, SystemRepository systemRepository) {
     super(null, null, design);
     this.themeRegistry = themeRegistry;
     this.design = design;
-    this.userRepository = userRepository;
+    this.systemRepository = systemRepository;
   }
 
   @Override
   public void populate() {
-    selectedTheme =
-        userRepository
-            .byId(viewer().player().getUniqueId().toString())
-            .flatMap(User::theme)
-            .orElse("Vanilla");
+    selectedTheme = systemRepository.get().join().theme();
     super.populate();
   }
 
@@ -75,17 +70,13 @@ public final class ThemeSelectWindow extends PaginatedWindow {
                         event -> {
                           event.setCancelled(true);
                           selectedTheme = theme.name();
-                          themeRegistry.set(viewer().player(), theme);
-                          userRepository
-                              .byId(viewer().player().getUniqueId().toString())
-                              .ifPresent(
-                                  user -> {
-                                    user.setTheme(theme.name());
-                                    userRepository.update(user);
+                          systemRepository
+                              .get()
+                              .thenComposeAsync(
+                                  system -> {
+                                    system.setTheme(selectedTheme);
+                                    return systemRepository.update(system);
                                   });
-                          design
-                              .streamContainers(viewer().player())
-                              .forEach(container -> container.draw(DrawReason.OTHER, true, true));
                           design.bind(viewer().player(), this);
                         }))
         .toList();

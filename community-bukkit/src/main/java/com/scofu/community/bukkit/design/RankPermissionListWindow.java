@@ -59,7 +59,7 @@ final class RankPermissionListWindow extends PaginatedWindow {
                               error()
                                   .text("Timed out.")
                                   .prefixed()
-                                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                                  .render(viewer().player()::sendMessage);
                               design().bind(viewer().player(), this);
                               return;
                             }

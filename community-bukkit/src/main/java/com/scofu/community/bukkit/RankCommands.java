@@ -11,7 +11,6 @@ import com.scofu.community.RankRepository;
 import com.scofu.community.bukkit.design.RankWindow;
 import com.scofu.design.bukkit.Design;
 import com.scofu.network.document.Query;
-import com.scofu.text.ThemeRegistry;
 import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -20,18 +19,13 @@ import org.bukkit.entity.Player;
 final class RankCommands implements Feature {
 
   private final Design design;
-  private final ThemeRegistry themeRegistry;
   private final RankRepository rankRepository;
   private final Provider<RankWindow> rankWindowProvider;
 
   @Inject
   RankCommands(
-      Design design,
-      ThemeRegistry themeRegistry,
-      RankRepository rankRepository,
-      Provider<RankWindow> rankWindowProvider) {
+      Design design, RankRepository rankRepository, Provider<RankWindow> rankWindowProvider) {
     this.design = design;
-    this.themeRegistry = themeRegistry;
     this.rankRepository = rankRepository;
     this.rankWindowProvider = rankWindowProvider;
   }
@@ -48,10 +42,7 @@ final class RankCommands implements Feature {
   private void ranks(Expansion<Player> source, boolean confirm) {
     final var player = source.orElseThrow();
     if (!confirm) {
-      info()
-          .text("Please confirm!")
-          .prefixed()
-          .renderTo(themeRegistry.byIdentified(player), player::sendMessage);
+      info().text("Please confirm!").prefixed().render(player::sendMessage);
       return;
     }
     rankRepository
@@ -64,9 +55,6 @@ final class RankCommands implements Feature {
                         .toArray(CompletableFuture[]::new)))
         .thenAccept(
             unused ->
-                success()
-                    .text("You've deleted all ranks.")
-                    .prefixed()
-                    .renderTo(themeRegistry.byIdentified(player), player::sendMessage));
+                success().text("You've deleted all ranks.").prefixed().render(player::sendMessage));
   }
 }

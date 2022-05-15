@@ -89,7 +89,7 @@ public final class RankWindow extends FlowWindow {
                               error()
                                   .text("Timed out.")
                                   .prefixed()
-                                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                                  .render(viewer().player()::sendMessage);
                               design.bind(viewer().player(), this);
                               return;
                             }
@@ -97,7 +97,7 @@ public final class RankWindow extends FlowWindow {
                               error()
                                   .text("A rank with the name %s already exists.", result)
                                   .prefixed()
-                                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                                  .render(viewer().player()::sendMessage);
                               design.bind(viewer().player(), this);
                               return;
                             }

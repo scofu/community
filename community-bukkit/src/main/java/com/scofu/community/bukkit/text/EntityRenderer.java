@@ -1,9 +1,9 @@
 package com.scofu.community.bukkit.text;
 
 import com.google.inject.Inject;
+import com.scofu.text.Color;
 import com.scofu.text.Renderer;
 import com.scofu.text.RendererRegistry;
-import com.scofu.text.Theme;
 import java.util.Optional;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Entity;
@@ -24,12 +24,12 @@ final class EntityRenderer implements Renderer<Entity> {
   }
 
   @Override
-  public Optional<Component> render(Theme theme, Entity entity) {
+  public Optional<Component> render(Entity entity) {
     if (entity instanceof Player player) {
-      return rendererRegistry.render(theme, Player.class, player);
+      return rendererRegistry.render(Player.class, player);
     }
     return Optional.ofNullable(entity.customName())
         .or(() -> Optional.of(entity.name()))
-        .map(component -> component.colorIfAbsent(theme.white()));
+        .map(component -> component.colorIfAbsent(Color.WHITE));
   }
 }

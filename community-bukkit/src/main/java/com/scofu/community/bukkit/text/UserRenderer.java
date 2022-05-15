@@ -11,8 +11,8 @@ import com.scofu.community.User;
 import com.scofu.community.UserRepository;
 import com.scofu.mojang.profile.Profile;
 import com.scofu.mojang.profile.ProfileRepository;
+import com.scofu.text.Color;
 import com.scofu.text.Renderer;
-import com.scofu.text.Theme;
 import java.util.Optional;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
@@ -39,13 +39,13 @@ final class UserRenderer implements Renderer<UUID> {
   }
 
   @Override
-  public Optional<Component> render(Theme theme, UUID uuid) {
+  public Optional<Component> render(UUID uuid) {
     final var username =
         profileRepository
             .byUsernameOrId(uuid.toString())
             .map(Profile::username)
             .orElse("<unknown>");
-    final var name = text(username).color(theme.white());
+    final var name = text(username).color(Color.WHITE);
     final var user = userRepository.byId(uuid.toString());
     final var formattedName =
         user.flatMap(User::session)
@@ -55,8 +55,8 @@ final class UserRenderer implements Renderer<UUID> {
             .map(
                 rank -> {
                   final var coloredName =
-                      rank.nameColor().map(color -> color.render(theme, name)).orElse(name);
-                  return rank.render(theme)
+                      rank.nameColor().map(color -> color.render(name)).orElse(name);
+                  return rank.render()
                       .<Component>map(tag -> translatable("%s %s", tag, coloredName))
                       .orElse(coloredName);
                 })

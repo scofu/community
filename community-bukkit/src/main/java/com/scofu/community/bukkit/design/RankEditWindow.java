@@ -86,7 +86,7 @@ final class RankEditWindow extends FlowWindow {
                               error()
                                   .text("Timed out.")
                                   .prefixed()
-                                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                                  .render(viewer().player()::sendMessage);
                               design.bind(viewer().player(), this);
                               return;
                             }
@@ -94,7 +94,7 @@ final class RankEditWindow extends FlowWindow {
                               error()
                                   .text("A rank with the name %s already exists.", result)
                                   .prefixed()
-                                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                                  .render(viewer().player()::sendMessage);
                               design.bind(viewer().player(), this);
                               return;
                             }
@@ -131,9 +131,7 @@ final class RankEditWindow extends FlowWindow {
                         .ofType(Material.PIGLIN_BANNER_PATTERN)
                         .withName(text("Tag"))
                         .withDescription(text("Change the tag."))
-                        .withTag(
-                            translatable(
-                                "Current: %s", rank.render(viewer().theme()).orElse(empty())))
+                        .withTag(translatable("Current: %s", rank.render().orElse(empty())))
                         .withFooter(text("Click to set the tag!")))
             .onClick(
                 event -> {
@@ -156,7 +154,7 @@ final class RankEditWindow extends FlowWindow {
                               error()
                                   .text("Timed out.")
                                   .prefixed()
-                                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                                  .render(viewer().player()::sendMessage);
                               design.bind(viewer().player(), this);
                               return;
                             }
@@ -176,9 +174,7 @@ final class RankEditWindow extends FlowWindow {
                             translatable(
                                 "Current: %s",
                                 rank.nameColor()
-                                    .map(
-                                        color ->
-                                            text("THIS").color(color.toColor(viewer().theme())))
+                                    .map(color -> text("THIS").color(color))
                                     .orElse(empty())))
                         .withFooter(text("Click to set the name color!")))
             .onClick(
@@ -193,7 +189,7 @@ final class RankEditWindow extends FlowWindow {
                               error()
                                   .text("Timed out.")
                                   .prefixed()
-                                  .renderTo(viewer().theme(), viewer().player()::sendMessage);
+                                  .render(viewer().player()::sendMessage);
                               design.bind(viewer().player(), this);
                               return;
                             }

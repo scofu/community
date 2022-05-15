@@ -7,8 +7,8 @@ import com.google.inject.Inject;
 import com.scofu.chat.AbstractChat;
 import com.scofu.chat.Participant;
 import com.scofu.chat.PrefixBasedChatResolver;
+import com.scofu.text.Color;
 import com.scofu.text.RendererRegistry;
-import com.scofu.text.ThemeRegistry;
 import net.kyori.adventure.audience.MessageType;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
@@ -21,8 +21,8 @@ public class CommunityChat extends AbstractChat {
   private final RendererRegistry rendererRegistry;
 
   @Inject
-  CommunityChat(Server server, ThemeRegistry themeRegistry, RendererRegistry rendererRegistry) {
-    super(translatable("chat.default.name"), themeRegistry);
+  CommunityChat(Server server, RendererRegistry rendererRegistry) {
+    super(translatable("chat.default.name"));
     this.server = server;
     this.rendererRegistry = rendererRegistry;
     map(PrefixBasedChatResolver.PREFIX_IDENTIFIER).to("!");
@@ -35,13 +35,11 @@ public class CommunityChat extends AbstractChat {
       sendRawMessage(translatable("unknown: %s", text(message)));
       return;
     }
-    sendThemedMessage(
-        participant.identity(),
-        MessageType.CHAT,
-        theme -> {
-          final var playerComponent =
-              rendererRegistry.render(theme, Player.class, player).orElse(Component.empty());
-          return playerComponent.append(text(": ").append(text(message)).color(theme.white()));
-        });
+    final var renderedMessage =
+        rendererRegistry
+            .render(Player.class, player)
+            .orElseGet(Component::empty)
+            .append(text(": ").append(text(message)).color(Color.WHITE));
+    sendMessage(participant.identity(), renderedMessage, MessageType.CHAT);
   }
 }

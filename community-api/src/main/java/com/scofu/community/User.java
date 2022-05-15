@@ -23,8 +23,4 @@ public interface User extends Lazy, Document {
   Optional<Time> time();
 
   void setTime(Time time);
-
-  Optional<String> theme();
-
-  void setTheme(String theme);
 }
