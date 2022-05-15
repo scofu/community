@@ -76,11 +76,6 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
                 })
             .<Window>build();
     populate(button);
-    //    populate(Button.dynamic(button, item -> {
-    //      item.setLore(1,
-    //          itemText(coinsLeaderboard.durationUntilNextRefresh().toSeconds() + "s.").color(
-    //              NamedTextColor.GRAY));
-    //    }));
   }
 
   @Override

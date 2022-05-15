@@ -31,6 +31,7 @@ import com.scofu.mojang.profile.ProfileRepository;
 import com.scofu.network.document.Book;
 import com.scofu.network.document.Order;
 import com.scofu.network.document.Query;
+import com.scofu.text.Color;
 import com.scofu.text.json.TagFactory;
 import java.time.Duration;
 import java.util.Optional;
@@ -42,7 +43,6 @@ import java.util.stream.IntStream;
 import javax.inject.Inject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.format.TextDecoration.State;
 import org.bukkit.entity.Player;
@@ -91,7 +91,7 @@ final class StatsCommands implements Feature {
   @Permission("scofu.command.genericstats")
   private void stats(Expansion<Player> source, Player target) {
     final var player = source.orElseThrow();
-    player.sendMessage(text("Loading stats...").color(NamedTextColor.GRAY));
+    player.sendMessage(text("Loading stats...").color(Color.WHITE));
     genericStatsRepository
         .byId(target.getUniqueId().toString())
         .ifPresentOrElse(
@@ -166,29 +166,29 @@ final class StatsCommands implements Feature {
                   lines -> {
                     lines.add(
                         text("Coins Leaderboard")
-                            .color(NamedTextColor.YELLOW)
+                            .color(Color.BRIGHT_YELLOW)
                             .decoration(TextDecoration.BOLD, State.TRUE));
                     page.documents()
                         .forEach(
                             (stats, placement) ->
                                 lines.add(
                                     text(placement + ". ")
-                                        .color(NamedTextColor.YELLOW)
+                                        .color(Color.BRIGHT_YELLOW)
                                         .append(
                                             text(stats.id())
-                                                .color(NamedTextColor.WHITE)
+                                                .color(Color.BRIGHT_WHITE)
                                                 .append(
                                                     text(" - ")
-                                                        .color(NamedTextColor.GRAY)
+                                                        .color(Color.WHITE)
                                                         .append(
                                                             text(stats.coins() + "")
-                                                                .color(NamedTextColor.YELLOW))))));
+                                                                .color(Color.BRIGHT_YELLOW))))));
                     lines.add(Component.empty());
                     lines.add(
                         text("Refreshes in "
                                 + coinsLeaderboardTest.durationUntilNextRefresh().toSeconds()
                                 + "s.")
-                            .color(NamedTextColor.GRAY));
+                            .color(Color.WHITE));
                   });
               hologram.setLocation(() -> location);
             });
@@ -239,7 +239,7 @@ final class StatsCommands implements Feature {
                   lines ->
                       lines.add(
                           text(hologramName)
-                              .color(NamedTextColor.YELLOW)
+                              .color(Color.BRIGHT_YELLOW)
                               .decoration(TextDecoration.BOLD, State.TRUE)));
               hologram.setLocation(() -> hologramLocation);
             });
@@ -303,13 +303,13 @@ final class StatsCommands implements Feature {
                     .map(
                         entry ->
                             text(placement.getAndIncrement() + ". ")
-                                .color(NamedTextColor.YELLOW)
+                                .color(Color.BRIGHT_YELLOW)
                                 .append(
                                     text(entry.getValue() + ". ")
-                                        .color(NamedTextColor.YELLOW)
+                                        .color(Color.BRIGHT_YELLOW)
                                         .append(
-                                            text(entry.getKey().id()).color(NamedTextColor.WHITE)))
-                                .append(text(" - ").color(NamedTextColor.GRAY))
+                                            text(entry.getKey().id()).color(Color.BRIGHT_WHITE)))
+                                .append(text(" - ").color(Color.WHITE))
                                 .append(text(entry.getKey().coins())))
                     .collect(toComponent(newline())))
             .append(newline())

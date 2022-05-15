@@ -2,6 +2,9 @@ package com.scofu.community.bukkit;
 
 import static com.scofu.design.bukkit.item.Button.button;
 import static com.scofu.text.Components.wrap;
+import static com.scofu.text.ContextualizedComponent.error;
+import static com.scofu.text.ContextualizedComponent.info;
+import static com.scofu.text.ContextualizedComponent.success;
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
@@ -19,6 +22,7 @@ import com.scofu.community.bukkit.design.GrantListWindow;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
+import com.scofu.text.Color;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
@@ -31,7 +35,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -73,31 +76,24 @@ final class GrantCommands implements Listener, Feature {
   @Permission("scofu.command.grants")
   private void grants(Expansion<Player> source, Player target) {
     final var player = source.orElseThrow();
-    player.sendMessage(translatable("Loading grants....").color(NamedTextColor.GRAY));
+    info().text("Loading grants...").prefixed().render(player::sendMessage);
     grantRepository
         .allByUserId(target.getUniqueId().toString())
         .whenComplete(
             ((grants, throwable) -> {
               if (throwable != null) {
-                player.sendMessage(translatable("Error, something went wrong."));
+                throwable.printStackTrace();
+                error().text("Error.").prefixed().render(player::sendMessage);
               } else {
-                player.sendMessage(text("Opening menu...").color(NamedTextColor.GRAY));
-                try {
-                  design.bind(
-                      player,
-                      new GrantListWindow(
-                          null,
-                          design,
-                          grants
-                              .sorted(Comparator.comparing(Grant::issuedAt))
-                              .collect(Collectors.toCollection(Lists::newArrayList)),
-                          grantRepository));
-                } catch (Throwable throwable1) {
-                  throwable1.printStackTrace();
-                  System.out.println(throwable1.getCause());
-                  player.sendMessage("error");
-                }
-                player.sendMessage("OKOKOK");
+                design.bind(
+                    player,
+                    new GrantListWindow(
+                        null,
+                        design,
+                        grants
+                            .sorted(Comparator.comparing(Grant::issuedAt))
+                            .collect(Collectors.toCollection(Lists::newArrayList)),
+                        grantRepository));
               }
             }));
   }
@@ -150,16 +146,19 @@ final class GrantCommands implements Listener, Feature {
                   Grant::expireAt,
                   expireAt));
     }
-    player.sendMessage(translatable("Updating...").color(NamedTextColor.GRAY));
+    info().text("Updating...").prefixed().render(player::sendMessage);
     grantRepository
         .update(grant)
         .whenComplete(
             ((x, throwable) -> {
               if (throwable != null) {
-                player.sendMessage(translatable("Error, something went wrong."));
+                throwable.printStackTrace();
+                error().text("Error.").prefixed().render(player::sendMessage);
               } else {
-                player.sendMessage(
-                    translatable("Granted %s rank %s.", text(target.getName()), text(rank.id())));
+                success()
+                    .text("Granted %s rank %s.", target.getName(), rank)
+                    .prefixed()
+                    .render(player::sendMessage);
               }
             }));
   }
@@ -170,23 +169,24 @@ final class GrantCommands implements Listener, Feature {
     final var player = source.orElseThrow();
     final var grant = grantRepository.byId(grantId).orElse(null);
     if (grant == null) {
-      player.sendMessage(translatable("No grant with id %s.", text(grantId)));
+      error().text("No grant with id %s.", grantId).prefixed().render(player::sendMessage);
       return;
     }
     if (grant.isRevoked()) {
-      player.sendMessage(translatable("Grant has already been revoked."));
+      error().text("Grant has already been revoked.").prefixed().render(player::sendMessage);
       return;
     }
     grant.revoke(player.getUniqueId().toString(), reason);
-    player.sendMessage(translatable("Updating..."));
+    info().text("Updating...").prefixed().render(player::sendMessage);
     grantRepository
         .update(grant)
         .whenComplete(
             ((x, throwable) -> {
               if (throwable != null) {
-                player.sendMessage(translatable("Error, something went wrong."));
+                throwable.printStackTrace();
+                error().text("Error.").prefixed().render(player::sendMessage);
               } else {
-                player.sendMessage(translatable("Revoked grant."));
+                success().text("Revoked grant.").prefixed().render(player::sendMessage);
               }
             }));
   }
@@ -240,14 +240,17 @@ final class GrantCommands implements Listener, Feature {
     final var player = source.orElseThrow();
     final var actualCommand = player.getServer().getCommandMap().getCommand(command);
     if (actualCommand == null) {
-      player.sendMessage(text("No such command."));
+      error().text("%s is not a command.", command).prefixed().render(player::sendMessage);
       return;
     }
     if (actualCommand.getPermission() == null) {
-      player.sendMessage(text("Command has no permission."));
+      error().text("That command has no permission.").prefixed().render(player::sendMessage);
       return;
     }
-    player.sendMessage(text("Permission: " + actualCommand.getPermission()));
+    success()
+        .text("Permission: %s", actualCommand.getPermission())
+        .prefixed()
+        .render(player::sendMessage);
   }
 
   @Identified("bottest")
@@ -271,9 +274,7 @@ final class GrantCommands implements Listener, Feature {
       Expansion<Player> source, int targetWidth, int padding, String format, String thing) {
     final var player = source.orElseThrow();
     final var component =
-        translatable(format, text(thing).color(NamedTextColor.DARK_PURPLE))
-            .color(NamedTextColor.GRAY)
-            .compact();
+        translatable(format, text(thing).color(Color.PURPLE)).color(Color.WHITE).compact();
     final var translated = GlobalTranslator.render(component, player.locale());
     player.sendMessage(space());
     wrap(translated, player.locale(), targetWidth, padding).forEach(player::sendMessage);
