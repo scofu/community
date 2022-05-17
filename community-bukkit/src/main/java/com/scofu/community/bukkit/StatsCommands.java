@@ -3,8 +3,12 @@ package com.scofu.community.bukkit;
 import static com.scofu.network.document.Filter.empty;
 import static com.scofu.network.document.Filter.exists;
 import static com.scofu.network.document.Filter.where;
+import static com.scofu.network.document.Query.query;
 import static com.scofu.network.document.Sort.by;
 import static com.scofu.text.ContextualizedComponent.debug;
+import static com.scofu.text.ContextualizedComponent.error;
+import static com.scofu.text.ContextualizedComponent.success;
+import static com.scofu.text.EntryComponent.entry;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
@@ -30,7 +34,6 @@ import com.scofu.design.bukkit.window.PaginatedWindow;
 import com.scofu.mojang.profile.ProfileRepository;
 import com.scofu.network.document.Book;
 import com.scofu.network.document.Order;
-import com.scofu.network.document.Query;
 import com.scofu.text.Color;
 import com.scofu.text.json.TagFactory;
 import java.time.Duration;
@@ -39,6 +42,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import javax.inject.Inject;
 import net.kyori.adventure.text.Component;
@@ -71,13 +75,13 @@ final class StatsCommands implements Feature {
     this.genericStatsRepository = genericStatsRepository;
     coinsLeaderboard =
         Book.of(
-            Query.builder().filter(empty()).sort(by("coins", Order.HIGHEST_TO_LOWEST)).build(),
+            query().filter(empty()).sort(by("coins", Order.HIGHEST_TO_LOWEST)).build(),
             PaginatedWindow.ITEMS_PER_PAGE,
             genericStatsRepository,
             Duration.ofSeconds(60));
     coinsLeaderboardTest =
         Book.of(
-            Query.builder().filter(empty()).sort(by("coins", Order.HIGHEST_TO_LOWEST)).build(),
+            query().filter(empty()).sort(by("coins", Order.HIGHEST_TO_LOWEST)).build(),
             10,
             genericStatsRepository,
             Duration.ofSeconds(60));
@@ -102,24 +106,19 @@ final class StatsCommands implements Feature {
   @Identified("setcoins")
   private void setcoins(Expansion<Player> source, Player target, int coins) {
     final var player = source.orElseThrow();
-    final var stats =
-        genericStatsRepository
-            .byId(target.getUniqueId().toString())
-            .orElseGet(
-                () ->
-                    lazyFactory.create(
-                        GenericStats.class, GenericStats::id, target.getUniqueId().toString()));
-    stats.setCoins(coins);
+    final Supplier<GenericStats> factory =
+        () ->
+            lazyFactory.create(
+                GenericStats.class, GenericStats::id, target.getUniqueId().toString());
     genericStatsRepository
-        .update(stats)
-        .whenComplete(
-            ((x, throwable) -> {
-              if (throwable != null) {
-                player.sendMessage(translatable("Error, something went wrong."));
-              } else {
-                player.sendMessage(translatable("Coins set to " + coins + "!"));
-              }
-            }));
+        .byIdAsync(target.getUniqueId().toString())
+        .onTimeout(() -> error().text("Timed out...").prefixed().render(player::sendMessage))
+        .apply(Optional::orElseGet, () -> factory)
+        .accept(GenericStats::setCoins, () -> coins)
+        .flatMap(genericStatsRepository::update)
+        .accept(
+            unused ->
+                success().text("Coins set to %s!", coins).prefixed().render(player::sendMessage));
   }
 
   @Identified("holotest")
@@ -136,15 +135,13 @@ final class StatsCommands implements Feature {
             hologram -> {
               hologram.setLines(
                   lines -> {
-                    lines.add(text("Hello!"));
+                    lines.add(entry("Hello!"));
                     lines.add(
-                        text(
-                            "You are at: "
-                                + (player.getLocation().getBlockX()
-                                    + ", "
-                                    + player.getLocation().getBlockY()
-                                    + ", "
-                                    + player.getLocation().getBlockZ())));
+                        entry(
+                            "You are at %s, %s, %s",
+                            player.getLocation().getBlockX(),
+                            player.getLocation().getBlockY(),
+                            player.getLocation().getBlockZ()));
                   });
               hologram.setLocation(() -> location);
             });
@@ -286,7 +283,7 @@ final class StatsCommands implements Feature {
 
     final var total =
         genericStatsRepository
-            .count(Query.builder().filter(where("references.coins", exists(true))).build())
+            .count(query().filter(where("references.coins", exists(true))).build())
             .join();
     final var pages = (int) Math.ceil(total / 10D);
     final int actualPage = page.orElse(1);

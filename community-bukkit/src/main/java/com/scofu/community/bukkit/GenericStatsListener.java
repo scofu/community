@@ -5,6 +5,8 @@ import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.GenericStats;
 import com.scofu.community.GenericStatsRepository;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.function.Supplier;
 import javax.inject.Inject;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,15 +26,16 @@ final class GenericStatsListener implements Listener, Feature {
   @EventHandler
   private void onPlayerJoinEvent(PlayerJoinEvent event) {
     final var player = event.getPlayer();
-    genericStatsRepository.delete(player.getUniqueId().toString()).join();
-    final var stats =
-        genericStatsRepository
-            .byId(player.getUniqueId().toString())
-            .orElseGet(
-                () ->
-                    lazyFactory.create(
-                        GenericStats.class, GenericStats::id, player.getUniqueId().toString()));
-    stats.setLastLoginAt(Instant.now());
-    genericStatsRepository.update(stats);
+    final var id = player.getUniqueId().toString();
+    final Supplier<GenericStats> factory =
+        () ->
+            lazyFactory.create(
+                GenericStats.class, GenericStats::id, player.getUniqueId().toString());
+    genericStatsRepository
+        .delete(id)
+        .flatMap(unused -> genericStatsRepository.byIdAsync(id))
+        .apply(Optional::orElseGet, () -> factory)
+        .accept(GenericStats::setLastLoginAt, Instant::now)
+        .flatMap(genericStatsRepository::update);
   }
 }

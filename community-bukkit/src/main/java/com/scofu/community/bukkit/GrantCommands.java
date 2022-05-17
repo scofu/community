@@ -76,26 +76,14 @@ final class GrantCommands implements Listener, Feature {
   @Permission("scofu.command.grants")
   private void grants(Expansion<Player> source, Player target) {
     final var player = source.orElseThrow();
+    final var collector = Collectors.<Grant, List<Grant>>toCollection(Lists::newArrayList);
     info().text("Loading grants...").prefixed().render(player::sendMessage);
     grantRepository
         .allByUserId(target.getUniqueId().toString())
-        .whenComplete(
-            ((grants, throwable) -> {
-              if (throwable != null) {
-                throwable.printStackTrace();
-                error().text("Error.").prefixed().render(player::sendMessage);
-              } else {
-                design.bind(
-                    player,
-                    new GrantListWindow(
-                        null,
-                        design,
-                        grants
-                            .sorted(Comparator.comparing(Grant::issuedAt))
-                            .collect(Collectors.toCollection(Lists::newArrayList)),
-                        grantRepository));
-              }
-            }));
+        .apply(Stream::sorted, () -> Comparator.comparing(Grant::issuedAt))
+        .apply(Stream::collect, () -> collector)
+        .map(grants -> new GrantListWindow(null, design, grants, grantRepository))
+        .accept(window -> design.bind(player, window));
   }
 
   @Identified("grant")
@@ -149,18 +137,10 @@ final class GrantCommands implements Listener, Feature {
     info().text("Updating...").prefixed().render(player::sendMessage);
     grantRepository
         .update(grant)
-        .whenComplete(
-            ((x, throwable) -> {
-              if (throwable != null) {
-                throwable.printStackTrace();
-                error().text("Error.").prefixed().render(player::sendMessage);
-              } else {
-                success()
-                    .text("Granted %s rank %s.", target.getName(), rank)
-                    .prefixed()
-                    .render(player::sendMessage);
-              }
-            }));
+        .map(
+            unused ->
+                success().text("Granted %s rank %s.", target.getName(), rank).prefixed().render())
+        .accept(player::sendMessage);
   }
 
   @Identified("grant revoke")
@@ -180,15 +160,8 @@ final class GrantCommands implements Listener, Feature {
     info().text("Updating...").prefixed().render(player::sendMessage);
     grantRepository
         .update(grant)
-        .whenComplete(
-            ((x, throwable) -> {
-              if (throwable != null) {
-                throwable.printStackTrace();
-                error().text("Error.").prefixed().render(player::sendMessage);
-              } else {
-                success().text("Revoked grant.").prefixed().render(player::sendMessage);
-              }
-            }));
+        .map(unused -> success().text("Revoked grant.").prefixed().render())
+        .accept(player::sendMessage);
   }
 
   @Identified("paginatedtest")

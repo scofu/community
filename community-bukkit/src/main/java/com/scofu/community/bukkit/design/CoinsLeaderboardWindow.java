@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.scofu.design.bukkit.item.Button.button;
 import static com.scofu.network.document.Filter.exists;
 import static com.scofu.network.document.Filter.where;
+import static com.scofu.network.document.Query.query;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
 
@@ -15,7 +16,6 @@ import com.scofu.design.bukkit.window.PaginatedWindow;
 import com.scofu.design.bukkit.window.Window;
 import com.scofu.network.document.Book;
 import com.scofu.network.document.Page;
-import com.scofu.network.document.Query;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -120,9 +120,7 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
 
   private int maxPagesInBook() {
     final var total =
-        genericStatsRepository
-            .count(Query.builder().filter(where("coins", exists(true))).build())
-            .join();
+        genericStatsRepository.count(query().filter(where("coins", exists(true))).build()).join();
     return (int) Math.ceil(total / (double) PaginatedWindow.ITEMS_PER_PAGE);
   }
 

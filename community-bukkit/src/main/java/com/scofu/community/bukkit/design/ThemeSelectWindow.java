@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
+import com.scofu.network.instance.System;
 import com.scofu.network.instance.SystemRepository;
 import com.scofu.text.Theme;
 import com.scofu.text.ThemeRegistry;
@@ -72,11 +73,8 @@ public final class ThemeSelectWindow extends PaginatedWindow {
                           selectedTheme = theme.name();
                           systemRepository
                               .get()
-                              .thenComposeAsync(
-                                  system -> {
-                                    system.setTheme(selectedTheme);
-                                    return systemRepository.update(system);
-                                  });
+                              .accept(System::setTheme, () -> selectedTheme)
+                              .flatMap(systemRepository::update);
                           design.bind(viewer().player(), this);
                         }))
         .toList();

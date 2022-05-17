@@ -1,5 +1,6 @@
 package com.scofu.community.bukkit;
 
+import static com.scofu.text.ContextualizedComponent.error;
 import static com.scofu.text.ContextualizedComponent.info;
 import static com.scofu.text.ContextualizedComponent.success;
 
@@ -11,7 +12,10 @@ import com.scofu.community.RankRepository;
 import com.scofu.community.bukkit.design.RankWindow;
 import com.scofu.design.bukkit.Design;
 import com.scofu.network.document.Query;
-import java.util.concurrent.CompletableFuture;
+import com.scofu.network.message.Result;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import org.bukkit.entity.Player;
@@ -47,14 +51,12 @@ final class RankCommands implements Feature {
     }
     rankRepository
         .find(Query.empty())
-        .thenCompose(
-            ranks ->
-                CompletableFuture.allOf(
-                    ranks.keySet().stream()
-                        .map(rankRepository::delete)
-                        .toArray(CompletableFuture[]::new)))
-        .thenAccept(
-            unused ->
-                success().text("You've deleted all ranks.").prefixed().render(player::sendMessage));
+        .map(map -> map.keySet().stream())
+        .apply(Stream::map, () -> (Function<String, Result<Void>>) rankRepository::delete)
+        .flatMap(stream -> stream.collect(Result.toResult()))
+        .map(Stream::count)
+        .map(count -> success().text("Ranks deleted: %s", count).render())
+        .timeoutAfter(1, TimeUnit.MINUTES, () -> error().text("Timed out.").prefixed().render())
+        .accept(player::sendMessage);
   }
 }

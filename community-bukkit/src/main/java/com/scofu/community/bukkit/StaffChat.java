@@ -10,7 +10,7 @@ import com.scofu.community.bukkit.api.StaffChatParticipantMessage;
 import com.scofu.community.bukkit.api.StaffChatRawMessage;
 import com.scofu.network.message.MessageFlow;
 import com.scofu.network.message.MessageQueue;
-import com.scofu.network.message.QueueBuilder;
+import com.scofu.network.message.Queue;
 import com.scofu.text.Color;
 import com.scofu.text.RendererRegistry;
 import com.scofu.text.json.Tag;
@@ -24,8 +24,8 @@ import net.kyori.adventure.text.Component;
 /** Staff chat. */
 public class StaffChat extends AbstractChat {
 
-  private final QueueBuilder<StaffChatParticipantMessage, Void> participantQueue;
-  private final QueueBuilder<StaffChatRawMessage, Void> rawQueue;
+  private final Queue<StaffChatParticipantMessage, Void> participantQueue;
+  private final Queue<StaffChatRawMessage, Void> rawQueue;
   private final RendererRegistry rendererRegistry;
   private final Tag tag;
 

@@ -2,14 +2,21 @@ package com.scofu.community.service;
 
 import static com.scofu.network.document.Filter.equalsTo;
 import static com.scofu.network.document.Filter.where;
+import static com.scofu.network.document.Query.query;
 
 import com.scofu.common.inject.Feature;
 import com.scofu.community.Grant;
 import com.scofu.community.GrantRepository;
+import com.scofu.community.Session;
+import com.scofu.community.User;
 import com.scofu.community.UserRepository;
 import com.scofu.network.document.DocumentStateListener;
-import com.scofu.network.document.Query;
+import com.scofu.network.message.Result;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 final class SessionController implements Feature, DocumentStateListener<Grant> {
@@ -28,7 +35,7 @@ final class SessionController implements Feature, DocumentStateListener<Grant> {
   public void onUpdate(Grant grant, boolean cached) {
     userRepository
         .byIdAsync(grant.userId())
-        .thenAcceptAsync(
+        .accept(
             optionalUser ->
                 optionalUser.ifPresent(
                     user ->
@@ -37,42 +44,36 @@ final class SessionController implements Feature, DocumentStateListener<Grant> {
                                 session ->
                                     grantRepository
                                         .byUserId(user.id())
-                                        .thenAcceptAsync(
+                                        .accept(
                                             grants -> {
                                               final var bestGrant = grants.findFirst().orElse(null);
                                               session.setGrant(bestGrant);
                                               userRepository.update(user);
                                             }))))
-        .orTimeout(10, TimeUnit.SECONDS)
-        .whenCompleteAsync(
-            (x, error) -> {
-              if (error != null) {
-                error.printStackTrace();
-              }
-            });
+        .timeoutAfter(10, TimeUnit.SECONDS);
   }
 
   @Override
   public void onDelete(String id) {
+    record Pair(User user, Session session) {}
     userRepository
-        .find(Query.builder().filter(where("session.grant._id", equalsTo(id))).limitTo(1).build())
-        .thenAccept(
-            map ->
-                map.values().stream()
-                    .findFirst()
-                    .ifPresent(
-                        user ->
-                            user.session()
-                                .ifPresent(
-                                    session -> {
-                                      final var bestGrant =
-                                          grantRepository
-                                              .byUserId(user.id())
-                                              .join()
-                                              .findFirst()
-                                              .orElse(null);
-                                      session.setGrant(bestGrant);
-                                      userRepository.update(user);
-                                    })));
+        .find(query().filter(where("session.grant._id", equalsTo(id))).limitTo(1).build())
+        .map(map -> map.values().stream().findFirst())
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(user -> new Pair(user, user.session().orElse(null)))
+        .filter(pair -> Objects.nonNull(pair.session))
+
+        .flatMap(pair -> setGrantAndUpdate(pair.user, pair.session));
+  }
+
+  private Result<User> setGrantAndUpdate(User user, Session session) {
+    return grantRepository
+        .byUserId(user.id())
+        .map(Stream::findFirst)
+        .apply(Optional::orElse, (Supplier<Grant>) () -> null)
+        .accept(session::setGrant)
+        .map(unused -> user)
+        .flatMap(userRepository::update);
   }
 }
