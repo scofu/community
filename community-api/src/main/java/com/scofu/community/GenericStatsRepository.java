@@ -27,11 +27,4 @@ public class GenericStatsRepository extends AbstractDocumentRepository<GenericSt
             .withCacheBuilder(CacheBuilder.newBuilder().expireAfterAccess(20, TimeUnit.MINUTES))
             .build());
   }
-
-  @Provides
-  @Singleton
-  Comparator<Grant> grantComparator(RankRepository rankRepository) {
-    return Comparator.comparing(
-        grant -> rankRepository.byId(grant.rankId()).orElseGet(Rank::empty));
-  }
 }
