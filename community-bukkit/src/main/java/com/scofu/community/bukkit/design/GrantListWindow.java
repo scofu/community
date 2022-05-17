@@ -2,7 +2,6 @@ package com.scofu.community.bukkit.design;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.scofu.design.bukkit.item.Button.button;
-import static com.scofu.design.bukkit.item.ItemTextComponent.itemText;
 import static com.scofu.text.ContextualizedComponent.error;
 import static com.scofu.text.ContextualizedComponent.info;
 import static net.kyori.adventure.text.Component.space;
@@ -18,7 +17,6 @@ import com.scofu.design.bukkit.item.ItemBuilder;
 import com.scofu.design.bukkit.window.ConfirmWindow;
 import com.scofu.design.bukkit.window.PaginatedWindow;
 import com.scofu.design.bukkit.window.Window;
-import com.scofu.text.Color;
 import com.scofu.text.Time;
 import java.time.Duration;
 import java.time.Instant;
@@ -59,94 +57,76 @@ public final class GrantListWindow extends PaginatedWindow {
   }
 
   @Override
-  protected List<? extends ButtonBuilder> buttons(String search, int page) {
-    return grants.stream()
-        .map(
-            grant ->
-                button()
-                    .withStaticItem(
-                        viewer(),
-                        builder ->
-                            builder
-                                .ofType(
-                                    grant.isRevoked()
-                                        ? Material.RED_BANNER
-                                        : grant.hasExpired()
-                                            ? Material.YELLOW_BANNER
-                                            : Material.GREEN_BANNER)
-                                .withName(
-                                    itemText(
-                                            Time.formatDate(
-                                                grant.issuedAt(), ZoneId.systemDefault()))
-                                        .color(
-                                            grant.isRevoked()
-                                                ? Color.BRIGHT_RED
-                                                : grant.hasExpired()
-                                                    ? Color.BRIGHT_YELLOW
-                                                    : Color.BRIGHT_GREEN))
-                                .adopt(childBuilder -> formatMeta(grant, childBuilder)))
-                    .onClick(
-                        event -> {
-                          event.setCancelled(true);
-                          if (event.isShiftClick()) {
-                            design()
-                                .request(
-                                    viewer().player(), new ConfirmWindow(), text("Are you sure?"))
-                                .completeOnTimeout(false, 10, TimeUnit.MINUTES)
-                                .thenAcceptAsync(
-                                    result -> {
-                                      if (result) {
-                                        grantRepository.delete(grant.id());
-                                        grants.remove(grant);
-                                      }
-                                      design().bind(viewer().player(), this);
-                                    });
-                            return;
-                          }
-                          if (grant.isRevoked()) {
-                            return;
-                          }
-                          design()
-                              .request(
-                                  viewer().player(),
-                                  new Chat(),
-                                  info().text("Please enter reason:").prefixed())
-                              .completeOnTimeout(null, 10, TimeUnit.MINUTES)
-                              .thenAcceptAsync(
-                                  reason -> {
-                                    if (reason == null) {
-                                      error()
-                                          .text("Timed out.")
-                                          .prefixed()
-                                          .render(viewer().player()::sendMessage);
-                                      design().bind(viewer().player(), this);
-                                      return;
-                                    }
-                                    design()
-                                        .request(
-                                            viewer().player(),
-                                            new ConfirmWindow(),
-                                            text("Are you sure?"))
-                                        .completeOnTimeout(false, 10, TimeUnit.MINUTES)
-                                        .thenAcceptAsync(
-                                            confirm -> {
-                                              if (confirm) {
-                                                grant.revoke(
-                                                    viewer().player().getUniqueId().toString(),
-                                                    reason);
-                                                grantRepository.update(grant);
-                                              }
-                                              design().bind(viewer().player(), this);
-                                            });
-                                  });
-                        }))
-        .toList();
+  protected List<? extends ButtonBuilder<Void>> buttons(String search, int page) {
+    return grants.stream().map(this::createButton).toList();
   }
 
-  private ItemBuilder formatMeta(Grant grant, ItemBuilder builder) {
-    builder = builder.withTag(text("Issued:"));
-    builder = builder.withTag(translatable(" By: %s", text(grant.issuerId())));
-    builder = builder.withTag(translatable(" Reason: %s", text(grant.reason())));
+  private ButtonBuilder<Void> createButton(Grant grant) {
+    return button()
+        .item(viewer())
+        .material(
+            grant.isRevoked()
+                ? Material.RED_BANNER
+                : grant.hasExpired() ? Material.YELLOW_BANNER : Material.GREEN_BANNER)
+        .name(text(grant.isRevoked() ? "Revoked" : grant.hasExpired() ? "Expired" : "Active"))
+        .header(Time.formatDate(grant.issuedAt(), ZoneId.systemDefault()))
+        .adopt(builder -> formatMeta(builder, grant))
+        .endItem()
+        .event(
+            event -> {
+              event.setCancelled(true);
+              if (event.isShiftClick()) {
+                design()
+                    .request(viewer().player(), new ConfirmWindow(), text("Are you sure?"))
+                    .completeOnTimeout(false, 10, TimeUnit.MINUTES)
+                    .thenAcceptAsync(
+                        result -> {
+                          if (result) {
+                            grantRepository.delete(grant.id());
+                            grants.remove(grant);
+                          }
+                          design().bind(viewer().player(), this);
+                        });
+                return;
+              }
+              if (grant.isRevoked()) {
+                return;
+              }
+              design()
+                  .request(
+                      viewer().player(), new Chat(), info().text("Please enter reason:").prefixed())
+                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                  .thenAcceptAsync(
+                      reason -> {
+                        if (reason == null) {
+                          error()
+                              .text("Timed out.")
+                              .prefixed()
+                              .render(viewer().player()::sendMessage);
+                          design().bind(viewer().player(), this);
+                          return;
+                        }
+                        design()
+                            .request(viewer().player(), new ConfirmWindow(), text("Are you sure?"))
+                            .completeOnTimeout(false, 10, TimeUnit.MINUTES)
+                            .thenAcceptAsync(
+                                confirm -> {
+                                  if (confirm) {
+                                    grant.revoke(
+                                        viewer().player().getUniqueId().toString(), reason);
+                                    grantRepository.update(grant);
+                                  }
+                                  design().bind(viewer().player(), this);
+                                });
+                      });
+            });
+  }
+
+  private ItemBuilder<ButtonBuilder<Void>> formatMeta(
+      ItemBuilder<ButtonBuilder<Void>> builder, Grant grant) {
+    builder = builder.tag(text("Issued:"));
+    builder = builder.tag(translatable(" By: %s", text(grant.issuerId())));
+    builder = builder.tag(translatable(" Reason: %s", text(grant.reason())));
 
     final var expiration =
         grant
@@ -162,27 +142,26 @@ public final class GrantListWindow extends PaginatedWindow {
                         .append(text(")")))
             .orElse(text("Permanent"));
 
-    builder = builder.withTag(translatable(" Expiration: %s", expiration));
-    builder = builder.withTag(translatable(" Rank: %s", text(grant.rankId())));
+    builder = builder.tag(translatable(" Expiration: %s", expiration));
+    builder = builder.tag(translatable(" Rank: %s", text(grant.rankId())));
 
-    builder = builder.withTag(space());
-    builder = builder.withTag(text("Status:"));
+    builder = builder.tag(space());
+    builder = builder.tag(text("Status:"));
 
     if (grant.isActive()) {
-      builder = builder.withTag(translatable(" [Active]"));
+      builder = builder.tag(translatable(" [Active]"));
     }
 
     if (grant.hasExpired()) {
-      builder = builder.withTag(translatable(" [Expired]"));
+      builder = builder.tag(translatable(" [Expired]"));
     }
 
     if (grant.isRevoked()) {
-      builder = builder.withTag(translatable(" [Revoked]"));
-      builder = builder.withTag(translatable("  By: %s", text(grant.revokerId().orElse("N/A"))));
+      builder = builder.tag(translatable(" [Revoked]"));
+      builder = builder.tag(translatable("  By: %s", text(grant.revokerId().orElse("N/A"))));
+      builder = builder.tag(translatable("  Reason: %s", text(grant.revokeReason().orElse("N/A"))));
       builder =
-          builder.withTag(translatable("  Reason: %s", text(grant.revokeReason().orElse("N/A"))));
-      builder =
-          builder.withTag(
+          builder.tag(
               translatable(
                   "  At: %s",
                   grant
@@ -192,10 +171,10 @@ public final class GrantListWindow extends PaginatedWindow {
     }
 
     if (!grant.isRevoked()) {
-      builder = builder.withFooter(text("Click to revoke!"));
+      builder = builder.footer(text("Click to revoke!"));
     }
 
-    builder = builder.withFooter(text("Shift+Click to delete!"));
+    builder = builder.footer(text("Shift+Click to delete!"));
 
     return builder;
   }

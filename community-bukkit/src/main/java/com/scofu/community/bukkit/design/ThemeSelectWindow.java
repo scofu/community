@@ -45,42 +45,41 @@ public final class ThemeSelectWindow extends PaginatedWindow {
   }
 
   @Override
-  protected List<? extends ButtonBuilder> buttons(String search, int page) {
+  protected List<? extends ButtonBuilder<Void>> buttons(String search, int page) {
     return themeRegistry.themes().stream()
         .sorted(Comparator.comparing(Theme::name))
-        .map(
-            theme ->
-                button()
-                    .withStaticItem(
-                        viewer(),
-                        builder ->
-                            builder
-                                .ofType(Material.FLOWER_BANNER_PATTERN)
-                                .withHideFlags(127)
-                                .withName(text(theme.name()))
-                                .withTags(getTags(theme))
-                                .adopt(
-                                    it -> {
-                                      if (selectedTheme.equals(theme.name())) {
-                                        return it.withFooter(text("Selected!"))
-                                            .ofType(Material.NETHER_STAR);
-                                      }
-                                      return it.withFooter(text("Click to select!"));
-                                    }))
-                    .onClick(
-                        event -> {
-                          event.setCancelled(true);
-                          selectedTheme = theme.name();
-                          systemRepository
-                              .get()
-                              .accept(System::setTheme, () -> selectedTheme)
-                              .flatMap(systemRepository::update);
-                          design.bind(viewer().player(), this);
-                        }))
+        .map(this::createButton)
         .toList();
   }
 
-  private List<Component> getTags(Theme theme) {
+  private ButtonBuilder<Void> createButton(Theme theme) {
+    return button()
+        .item(viewer())
+        .material(Material.FLOWER_BANNER_PATTERN)
+        .allHideFlags()
+        .name(text(theme.name()))
+        .tags(createTags(theme))
+        .adopt(
+            it -> {
+              if (selectedTheme.equals(theme.name())) {
+                return it.footer(text("Selected!")).material(Material.NETHER_STAR);
+              }
+              return it.footer(text("Click to select!"));
+            })
+        .endItem()
+        .event(
+            event -> {
+              event.setCancelled(true);
+              selectedTheme = theme.name();
+              systemRepository
+                  .get()
+                  .accept(System::setTheme, () -> selectedTheme)
+                  .flatMap(systemRepository::update);
+              design.bind(viewer().player(), this);
+            });
+  }
+
+  private List<Component> createTags(Theme theme) {
     return List.of(
         colorTag("Black", theme.black()),
         colorTag("Blue", theme.blue()),

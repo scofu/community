@@ -47,37 +47,34 @@ public final class RankWindow extends FlowWindow {
   }
 
   @Override
-  protected Optional<List<? extends ButtonBuilder>> header() {
+  protected Optional<List<? extends ButtonBuilder<Void>>> header() {
     return Optional.empty();
   }
 
   @Override
-  protected List<? extends ButtonBuilder> buttons() {
-    return List.of(
+  protected List<? extends ButtonBuilder<Void>> buttons() {
+    final var listButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.BOOK)
-                        .withName(text("List ranks"))
-                        .withDescription(text("View a list of all ranks.")))
-            .onClick(
+            .item(viewer())
+            .material(Material.BOOK)
+            .name(text("List Ranks"))
+            .description(text("View a list of all ranks."))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   design.bind(
                       viewer().player(),
                       new RankListWindow(design, rankRepository, tagFactory, this));
-                }),
+                });
+    final var createButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.NETHER_STAR)
-                        .withName(text("Create a new rank"))
-                        .withDescription(text("Create and edit a new rank.")))
-            .onClick(
+            .item(viewer())
+            .material(Material.NETHER_STAR)
+            .name(text("Create a new rank"))
+            .description(text("Create and edit a new rank."))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   design
@@ -112,11 +109,12 @@ public final class RankWindow extends FlowWindow {
                                 viewer().player(),
                                 new RankEditWindow(design, rankRepository, tagFactory, this, rank));
                           });
-                }));
+                });
+    return List.of(listButton, createButton);
   }
 
   @Override
-  protected Optional<List<? extends ButtonBuilder>> footer() {
+  protected Optional<List<? extends ButtonBuilder<Void>>> footer() {
     return Optional.empty();
   }
 }

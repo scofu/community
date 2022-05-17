@@ -15,6 +15,7 @@ import com.scofu.design.bukkit.window.PaginatedWindow;
 import com.scofu.design.bukkit.window.Window;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import net.kyori.adventure.text.Component;
@@ -32,42 +33,40 @@ final class RankPermissionListWindow extends PaginatedWindow {
   @Override
   public void populate() {
     super.populate();
-    populate(
-        button()
-            .at(45)
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.SCUTE)
-                        .withName(text("Add"))
-                        .withDescription(text("Add a new permission."))
-                        .withFooter(text("Click to add!")))
-            .onClick(
-                event -> {
-                  event.setCancelled(true);
-                  viewer().player().closeInventory();
-                  design()
-                      .request(
-                          viewer().player(),
-                          new Chat(),
-                          info().text("Please enter permission:").prefixed())
-                      .completeOnTimeout(null, 10, TimeUnit.MINUTES)
-                      .thenAcceptAsync(
-                          result -> {
-                            if (result == null) {
-                              error()
-                                  .text("Timed out.")
-                                  .prefixed()
-                                  .render(viewer().player()::sendMessage);
-                              design().bind(viewer().player(), this);
-                              return;
-                            }
-                            rank.addPermission(new PeriodEscapedString(result), true);
-                            design().bind(viewer().player(), this);
-                          });
-                })
-            .build());
+
+    button()
+        .slot(45)
+        .item(viewer())
+        .material(Material.SCUTE)
+        .name(text("Add"))
+        .description(text("Add a new permission."))
+        .footer(text("Click to add!"))
+        .endItem()
+        .event(
+            event -> {
+              event.setCancelled(true);
+              viewer().player().closeInventory();
+              design()
+                  .request(
+                      viewer().player(),
+                      new Chat(),
+                      info().text("Please enter permission:").prefixed())
+                  .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                  .thenAcceptAsync(
+                      result -> {
+                        if (result == null) {
+                          error()
+                              .text("Timed out.")
+                              .prefixed()
+                              .render(viewer().player()::sendMessage);
+                          design().bind(viewer().player(), this);
+                          return;
+                        }
+                        rank.addPermission(new PeriodEscapedString(result), true);
+                        design().bind(viewer().player(), this);
+                      });
+            })
+        .build(this::populate);
   }
 
   @Override
@@ -76,7 +75,7 @@ final class RankPermissionListWindow extends PaginatedWindow {
   }
 
   @Override
-  protected List<? extends ButtonBuilder> buttons(String search, int page) {
+  protected List<? extends ButtonBuilder<Void>> buttons(String search, int page) {
     return rank.permissions().map(map -> map.entrySet().stream()).stream()
         .flatMap(Function.identity())
         .filter(
@@ -87,43 +86,39 @@ final class RankPermissionListWindow extends PaginatedWindow {
                         .toString()
                         .toLowerCase(Locale.ROOT)
                         .contains(search.toLowerCase(Locale.ROOT)))
-        .map(
-            entry ->
-                button()
-                    .withStaticItem(
-                        viewer(),
-                        builder ->
-                            builder
-                                .ofType(entry.getValue() ? Material.LIME_DYE : Material.GRAY_DYE)
-                                .withName(text(entry.getKey().toString()))
-                                .withDescription(
-                                    entry.getValue()
-                                        ? text("Positive permission.")
-                                        : text("Negative " + "permission."))
-                                .withFooter(text("Click to toggle!"))
-                                .withFooter(text("Shift+Click to " + "remove!")))
-                    .onClick(
-                        event -> {
-                          event.setCancelled(true);
-                          if (event.isShiftClick()) {
-                            design()
-                                .request(
-                                    viewer().player(), new ConfirmWindow(), text("Are you sure?"))
-                                .completeOnTimeout(null, 10, TimeUnit.MINUTES)
-                                .thenAcceptAsync(
-                                    result -> {
-                                      if (result == null || !result) {
-                                        design().bind(viewer().player(), this);
-                                        return;
-                                      }
-                                      rank.removePermission(entry.getKey());
-                                      design().bind(viewer().player(), this);
-                                    });
+        .map(this::createButton)
+        .toList();
+  }
+
+  private ButtonBuilder<Void> createButton(Entry<PeriodEscapedString, Boolean> entry) {
+    return button()
+        .item(viewer())
+        .material(entry.getValue() ? Material.LIME_DYE : Material.GRAY_DYE)
+        .name(text(entry.getKey().toString()))
+        .description(entry.getValue() ? text("Positive permission.") : text("Negative permission."))
+        .footer(text("Click to toggle!"))
+        .footer(text("Shift+Click to remove!"))
+        .endItem()
+        .event(
+            event -> {
+              event.setCancelled(true);
+              if (event.isShiftClick()) {
+                design()
+                    .request(viewer().player(), new ConfirmWindow(), text("Are you sure?"))
+                    .completeOnTimeout(null, 10, TimeUnit.MINUTES)
+                    .thenAcceptAsync(
+                        result -> {
+                          if (result == null || !result) {
+                            design().bind(viewer().player(), this);
                             return;
                           }
-                          rank.addPermission(entry.getKey(), !entry.getValue());
+                          rank.removePermission(entry.getKey());
                           design().bind(viewer().player(), this);
-                        }))
-        .toList();
+                        });
+                return;
+              }
+              rank.addPermission(entry.getKey(), !entry.getValue());
+              design().bind(viewer().player(), this);
+            });
   }
 }

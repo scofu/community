@@ -1,7 +1,6 @@
 package com.scofu.community.bukkit.design;
 
 import static com.scofu.design.bukkit.item.Button.button;
-import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
 
@@ -21,18 +20,14 @@ import org.bukkit.Material;
 
 final class RankListWindow extends PaginatedWindow {
 
-  private final Design ui;
   private final RankRepository rankRepository;
   private final TagFactory tagFactory;
-  private final Window parent;
 
   public RankListWindow(
       Design design, RankRepository rankRepository, TagFactory tagFactory, Window parent) {
     super(TickSpeed.NORMAL, parent, design);
-    this.ui = design;
     this.rankRepository = rankRepository;
     this.tagFactory = tagFactory;
-    this.parent = parent;
   }
 
   @Override
@@ -41,7 +36,7 @@ final class RankListWindow extends PaginatedWindow {
   }
 
   @Override
-  protected List<? extends ButtonBuilder> buttons(String search, int page) {
+  protected List<? extends ButtonBuilder<Void>> buttons(String search, int page) {
     // TODO: use cached values or query with search filter
     return rankRepository.find(Query.empty()).join().values().stream()
         .sorted()
@@ -49,23 +44,21 @@ final class RankListWindow extends PaginatedWindow {
             rank ->
                 !hasClearableSearch()
                     || rank.id().toLowerCase(Locale.ROOT).contains(search.toLowerCase(Locale.ROOT)))
-        .map(this::toButton)
+        .map(this::createButton)
         .toList();
   }
 
-  private ButtonBuilder toButton(Rank rank) {
+  private ButtonBuilder<Void> createButton(Rank rank) {
     return button()
-        .withItem(
-            viewer(),
-            builder ->
-                builder
-                    .ofType(Material.NAME_TAG)
-                    .withName(text(rank.name()).color(rank.nameColor().orElse(Color.WHITE)))
-                    .withTag(translatable("Priority: %s", text(rank.priority())))
-                    .withTag(translatable("Tag: %s", rank.render().orElse(empty())))
-                    .withFooter(text("Click to edit!"))
-                    .withFooter(text("Shift+Click to delete!")))
-        .onClick(
+        .item(viewer())
+        .material(Material.NAME_TAG)
+        .name(text(rank.name()).color(rank.nameColor().orElse(Color.WHITE)))
+        .tag(translatable("Priority: %s", text(rank.priority())))
+        .tag(translatable("Tag: %s", rank.render().orElseGet(Component::empty)))
+        .footer(text("Click to edit!"))
+        .footer(text("Shift+Click to delete!"))
+        .endItem()
+        .event(
             event -> {
               event.setCancelled(true);
               if (event.isShiftClick()) {

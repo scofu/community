@@ -11,11 +11,12 @@ import static net.kyori.adventure.text.Component.translatable;
 import com.scofu.community.GenericStats;
 import com.scofu.community.GenericStatsRepository;
 import com.scofu.design.bukkit.Design;
+import com.scofu.design.bukkit.item.Button;
 import com.scofu.design.bukkit.item.ButtonBuilder;
 import com.scofu.design.bukkit.window.PaginatedWindow;
-import com.scofu.design.bukkit.window.Window;
 import com.scofu.network.document.Book;
 import com.scofu.network.document.Page;
+import com.scofu.text.Time;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,6 +33,7 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
   private final Book<GenericStats> coinsLeaderboard;
   private final GenericStatsRepository genericStatsRepository;
   private Page<GenericStats> page;
+  private Button refreshButton;
 
   /**
    * Constructs a new coins leaderboard window.
@@ -57,25 +59,19 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
   public void populate() {
     page = coinsLeaderboard.page(page());
     super.populate();
-    final var button =
-        button()
-            .at(9 * 5)
-            .withItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.CLOCK)
-                        .withName(text("Next Refresh"))
-                        .withDescription(
-                            translatable(
-                                "Next refresh is in {0}s.",
-                                text(coinsLeaderboard.durationUntilNextRefresh().toSeconds()))))
-            .onClick(
-                event -> {
-                  event.setCancelled(true);
-                })
-            .<Window>build();
-    populate(button);
+    button()
+        .ticking(true)
+        .slot(9 * 5)
+        .item(viewer())
+        .material(Material.CLOCK)
+        .name(text("Next Refresh"))
+        .description(
+            translatable(
+                "The next refresh is in %s.",
+                Time.formatDurationDetailed(coinsLeaderboard.durationUntilNextRefresh())))
+        .endItem()
+        .event(event -> event.setCancelled(true))
+        .build(this::populate);
   }
 
   @Override
@@ -84,7 +80,7 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
   }
 
   @Override
-  protected List<? extends ButtonBuilder> buttons(String search, int page) {
+  protected List<? extends ButtonBuilder<Void>> buttons(String search, int page) {
     if (hasClearableSearch()) {
       return IntStream.rangeClosed(1, maxPagesInBook())
           .mapToObj(coinsLeaderboard::page)
@@ -98,7 +94,7 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
                       .id()
                       .toLowerCase(Locale.ROOT)
                       .contains(search.toLowerCase(Locale.ROOT)))
-          .map(entry -> toButton(entry.getKey(), entry.getValue()))
+          .map(entry -> createButton(entry.getKey(), entry.getValue()))
           .toList();
     }
     final var placement = new AtomicInteger((page - 1) * 45);
@@ -106,7 +102,7 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
         //        .filter(stats -> search.isEmpty() || search.isBlank() ||
         //            stats.playerId().toLowerCase(Locale.ROOT).contains(search.toLowerCase
         //            (Locale.ROOT)))
-        .map(entry -> toButton(entry.getKey(), entry.getValue()))
+        .map(entry -> createButton(entry.getKey(), entry.getValue()))
         .toList();
   }
 
@@ -124,18 +120,13 @@ public final class CoinsLeaderboardWindow extends PaginatedWindow {
     return (int) Math.ceil(total / (double) PaginatedWindow.ITEMS_PER_PAGE);
   }
 
-  private ButtonBuilder toButton(GenericStats stats, int placement) {
+  private ButtonBuilder<Void> createButton(GenericStats stats, int placement) {
     return button()
-        .withStaticItem(
-            viewer(),
-            builder ->
-                builder
-                    .ofType(Material.PLAYER_HEAD)
-                    .withName(translatable("%s %s", text(placement + "."), text(stats.id())))
-                    .withDescription(text(stats.coins())))
-        .onClick(
-            event -> {
-              event.setCancelled(true);
-            });
+        .item(viewer())
+        .material(Material.PLAYER_HEAD)
+        .name(translatable("%s. %s", text(placement), text(stats.id())))
+        .description(text(stats.coins()))
+        .endItem()
+        .event(event -> event.setCancelled(true));
   }
 }

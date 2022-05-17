@@ -173,11 +173,11 @@ final class GrantCommands implements Listener, Feature {
 
           @Override
           protected Component title(String search, int page, int pages) {
-            return text("Test");
+            return text("Materials");
           }
 
           @Override
-          protected List<? extends ButtonBuilder> buttons(String search, int page) {
+          protected List<? extends ButtonBuilder<Void>> buttons(String search, int page) {
             return Stream.of(Material.values())
                 .filter(material -> !material.isLegacy())
                 .filter(
@@ -191,18 +191,11 @@ final class GrantCommands implements Listener, Feature {
                 .map(
                     material ->
                         button()
-                            .withItem(
-                                viewer(),
-                                builder ->
-                                    builder
-                                        .ofType(material)
-                                        .withName(text(material.name().toLowerCase(Locale.ROOT))))
-                            .onClick(
-                                event -> {
-                                  event.setCancelled(true);
-                                  viewer().player().closeInventory();
-                                  viewer().player().sendActionBar(text("yoooo"));
-                                }))
+                            .item(viewer())
+                            .material(material)
+                            .name(translatable(material.translationKey()))
+                            .endItem()
+                            .event(event -> event.setCancelled(true)))
                 .toList();
           }
         });

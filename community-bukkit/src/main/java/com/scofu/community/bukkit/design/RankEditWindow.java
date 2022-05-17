@@ -1,5 +1,6 @@
 package com.scofu.community.bukkit.design;
 
+import static com.scofu.design.bukkit.item.Button.backButton;
 import static com.scofu.design.bukkit.item.Button.button;
 import static com.scofu.text.ContextualizedComponent.error;
 import static net.kyori.adventure.text.Component.empty;
@@ -34,7 +35,7 @@ final class RankEditWindow extends FlowWindow {
 
   public RankEditWindow(
       Design ui, RankRepository rankRepository, TagFactory tagFactory, Window parent, Rank rank) {
-    super(TickSpeed.NORMAL);
+    super(null);
     this.rankRepository = rankRepository;
     this.design = ui;
     this.tagFactory = tagFactory;
@@ -48,33 +49,29 @@ final class RankEditWindow extends FlowWindow {
   }
 
   @Override
-  protected Optional<List<? extends ButtonBuilder>> header() {
-    return Optional.of(rank)
-        .map(
-            rank -> {
-              return List.of(
-                  button()
-                      .withStaticItem(
-                          viewer(),
-                          builder -> builder.ofType(Material.NAME_TAG).withName(text(rank.name())))
-                      .onClick(event -> event.setCancelled(true)));
-            });
+  protected Optional<List<? extends ButtonBuilder<Void>>> header() {
+    final var rankButton =
+        button()
+            .item(viewer())
+            .material(Material.NAME_TAG)
+            .name(text(rank.name()))
+            .endItem()
+            .event(event -> event.setCancelled(true));
+    return Optional.of(rank).map(rank -> List.of(rankButton));
   }
 
   @Override
-  protected List<? extends ButtonBuilder> buttons() {
-    return List.of(
+  protected List<? extends ButtonBuilder<Void>> buttons() {
+    final var nameButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.SPRUCE_SIGN)
-                        .withName(text("Name"))
-                        .withDescription(text("Change the name."))
-                        .withTag(translatable("Current: %s", text(rank.name())))
-                        .withFooter(text("Click to rename!")))
-            .onClick(
+            .item(viewer())
+            .material(Material.SPRUCE_SIGN)
+            .name(text("Name"))
+            .description(text("Change the name."))
+            .tag(translatable("Current: %s", text(rank.name())))
+            .footer(text("Click to rename!"))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   design
@@ -101,19 +98,18 @@ final class RankEditWindow extends FlowWindow {
                             rank.setName(result);
                             design.bind(viewer().player(), this);
                           });
-                }),
+                });
+    final var priorityButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.PIGLIN_BANNER_PATTERN)
-                        .withName(text("Priorty"))
-                        .withDescription(text("Increase or decrease the priority."))
-                        .withTag(translatable("Current: %s", text(rank.priority())))
-                        .withFooter(text("Left-Click to increase!"))
-                        .withFooter(text("Right-Click to decrease!")))
-            .onClick(
+            .item(viewer())
+            .material(Material.PIGLIN_BANNER_PATTERN)
+            .name(text("Priority"))
+            .description(text("Increase or decrease the priority."))
+            .tag(translatable("Current: %s", text(rank.priority())))
+            .footer(text("Left-Click to increase!"))
+            .footer(text("Right-Click to decrease!"))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   if (event.isLeftClick()) {
@@ -122,18 +118,17 @@ final class RankEditWindow extends FlowWindow {
                     rank.decrementPriority();
                   }
                   design.bind(viewer().player(), this);
-                }),
+                });
+    final var tagButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.PIGLIN_BANNER_PATTERN)
-                        .withName(text("Tag"))
-                        .withDescription(text("Change the tag."))
-                        .withTag(translatable("Current: %s", rank.render().orElse(empty())))
-                        .withFooter(text("Click to set the tag!")))
-            .onClick(
+            .item(viewer())
+            .material(Material.PIGLIN_BANNER_PATTERN)
+            .name(text("Tag"))
+            .description(text("Change the tag."))
+            .tag(translatable("Current: %s", rank.render().orElse(empty())))
+            .footer(text("Click to set the tag!"))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   design
@@ -161,23 +156,19 @@ final class RankEditWindow extends FlowWindow {
                             rank.setTag(result);
                             design.bind(viewer().player(), this);
                           });
-                }),
+                });
+    final var nameColorButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.WHITE_DYE)
-                        .withName(text("Name color"))
-                        .withDescription(text("Change the name color."))
-                        .withTag(
-                            translatable(
-                                "Current: %s",
-                                rank.nameColor()
-                                    .map(color -> text("THIS").color(color))
-                                    .orElse(empty())))
-                        .withFooter(text("Click to set the name color!")))
-            .onClick(
+            .item(viewer())
+            .material(Material.WHITE_DYE)
+            .name(text("Name Color"))
+            .description(text("Change the name color."))
+            .tag(
+                translatable(
+                    "Current: %s",
+                    rank.nameColor().map(color -> text("THIS").color(color)).orElse(empty())))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   design
@@ -196,54 +187,40 @@ final class RankEditWindow extends FlowWindow {
                             rank.setNameColor(result);
                             design.bind(viewer().player(), this);
                           });
-                }),
+                });
+    final var permissionsButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.BOOK)
-                        .withName(text("Permissions"))
-                        .withDescription(text("Edit permissions."))
-                        .withFooter(text("Click to edit permissions!")))
-            .onClick(
+            .item(viewer())
+            .material(Material.BOOK)
+            .name(text("Permissions"))
+            .description(text("Edit permissions."))
+            .footer(text("Click to edit permissions!"))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   design.bind(viewer().player(), new RankPermissionListWindow(this, design, rank));
-                }),
+                });
+    final var saveButton =
         button()
-            .withStaticItem(
-                viewer(),
-                builder ->
-                    builder
-                        .ofType(Material.HEART_OF_THE_SEA)
-                        .withName(text("Save"))
-                        .withDescription(text("Save any current changes.")))
-            .onClick(
+            .item(viewer())
+            .material(Material.HEART_OF_THE_SEA)
+            .name(text("Save"))
+            .description(text("Save any current changes."))
+            .endItem()
+            .event(
                 event -> {
                   event.setCancelled(true);
                   rankRepository.update(rank);
-                }));
+                });
+    return List.of(
+        nameButton, priorityButton, tagButton, nameColorButton, permissionsButton, saveButton);
   }
 
   @Override
-  protected Optional<List<? extends ButtonBuilder>> footer() {
+  protected Optional<List<? extends ButtonBuilder<Void>>> footer() {
     return Optional.ofNullable(parent)
-        .map(
-            window ->
-                List.of(
-                    button()
-                        .withStaticItem(
-                            viewer(),
-                            builder ->
-                                builder
-                                    .ofType(Material.RED_DYE)
-                                    .withName(text("Go back"))
-                                    .withDescription(text("Return to the previous window.")))
-                        .onClick(
-                            event -> {
-                              event.setCancelled(true);
-                              design.bind(viewer().player(), parent);
-                            })));
+        .map(parent -> backButton(viewer(), parent, design))
+        .map(List::of);
   }
 }
