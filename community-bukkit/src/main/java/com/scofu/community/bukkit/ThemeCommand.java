@@ -1,10 +1,10 @@
 package com.scofu.community.bukkit;
 
 import com.google.inject.Inject;
-import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
 import com.scofu.command.text.Description;
 import com.scofu.command.validation.Permission;
+import com.scofu.common.Expansion;
 import com.scofu.common.inject.Feature;
 import com.scofu.community.bukkit.design.ThemeSelectWindow;
 import com.scofu.design.bukkit.Design;

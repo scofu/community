@@ -1,12 +1,12 @@
 package com.scofu.community;
 
 import com.jsoniter.any.Any;
-import com.scofu.common.json.PeriodEscapedString;
-import com.scofu.text.Color;
+import com.scofu.common.PeriodEscapedString;
 import com.scofu.text.json.Tag;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import net.kyori.adventure.text.format.TextColor;
 
 final class EmptyRank implements Rank {
 
@@ -47,12 +47,12 @@ final class EmptyRank implements Rank {
   public void setPriority(int priority) {}
 
   @Override
-  public Optional<Color> nameColor() {
+  public Optional<TextColor> nameColor() {
     return Optional.empty();
   }
 
   @Override
-  public void setNameColor(Color nameColor) {}
+  public void setNameColor(TextColor nameColor) {}
 
   @Override
   public Optional<Map<PeriodEscapedString, Boolean>> permissions() {
@@ -73,6 +73,11 @@ final class EmptyRank implements Rank {
   @Override
   public Any any() {
     return null;
+  }
+
+  @Override
+  public Class<?> realClass() {
+    return Rank.class;
   }
 
   @Override

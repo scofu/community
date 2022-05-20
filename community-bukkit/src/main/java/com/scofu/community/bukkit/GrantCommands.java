@@ -10,9 +10,9 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.translatable;
 
 import com.google.common.collect.Lists;
-import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
 import com.scofu.command.validation.Permission;
+import com.scofu.common.Expansion;
 import com.scofu.common.inject.Feature;
 import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.Grant;

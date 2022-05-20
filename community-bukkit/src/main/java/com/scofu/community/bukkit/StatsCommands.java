@@ -16,9 +16,9 @@ import static net.kyori.adventure.text.Component.toComponent;
 import static net.kyori.adventure.text.Component.translatable;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
 import com.scofu.command.validation.Permission;
+import com.scofu.common.Expansion;
 import com.scofu.common.inject.Feature;
 import com.scofu.common.json.lazy.LazyFactory;
 import com.scofu.community.GenericStats;

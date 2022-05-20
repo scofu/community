@@ -3,8 +3,8 @@ package com.scofu.community.bukkit;
 import static com.scofu.text.ContextualizedComponent.info;
 
 import com.google.inject.Inject;
-import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
+import com.scofu.common.Expansion;
 import com.scofu.common.inject.Feature;
 import com.scofu.community.Time;
 import com.scofu.community.UserRepository;

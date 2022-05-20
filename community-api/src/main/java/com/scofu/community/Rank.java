@@ -2,7 +2,7 @@ package com.scofu.community;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.scofu.common.json.PeriodEscapedString;
+import com.scofu.common.PeriodEscapedString;
 import com.scofu.common.json.lazy.Lazy;
 import com.scofu.network.document.Document;
 import com.scofu.text.Color;
@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 /** A rank. */
@@ -37,9 +38,9 @@ public interface Rank extends Lazy, Document, Renderable, Comparable<Rank> {
 
   void setPriority(int priority);
 
-  Optional<Color> nameColor();
+  Optional<TextColor> nameColor();
 
-  void setNameColor(Color nameColor);
+  void setNameColor(TextColor nameColor);
 
   Optional<Map<PeriodEscapedString, Boolean>> permissions();
 

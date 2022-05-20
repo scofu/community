@@ -42,8 +42,7 @@ final class PlayerRenderer implements Renderer<Player> {
             .flatMap(rankRepository::byId)
             .map(
                 rank -> {
-                  final var coloredName =
-                      rank.nameColor().map(color -> color.render(name)).orElse(name);
+                  final var coloredName = rank.nameColor().map(name::color).orElse(name);
                   return rank.render()
                       .<Component>map(tag -> translatable("%s %s", tag, coloredName))
                       .orElse(coloredName);

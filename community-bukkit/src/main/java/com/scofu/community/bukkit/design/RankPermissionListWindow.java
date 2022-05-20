@@ -5,7 +5,7 @@ import static com.scofu.text.ContextualizedComponent.error;
 import static com.scofu.text.ContextualizedComponent.info;
 import static net.kyori.adventure.text.Component.text;
 
-import com.scofu.common.json.PeriodEscapedString;
+import com.scofu.common.PeriodEscapedString;
 import com.scofu.community.Rank;
 import com.scofu.design.bukkit.Design;
 import com.scofu.design.bukkit.chat.Chat;

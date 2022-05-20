@@ -4,9 +4,9 @@ import static com.scofu.text.ContextualizedComponent.error;
 import static com.scofu.text.ContextualizedComponent.info;
 import static com.scofu.text.ContextualizedComponent.success;
 
-import com.scofu.command.model.Expansion;
 import com.scofu.command.model.Identified;
 import com.scofu.command.validation.Permission;
+import com.scofu.common.Expansion;
 import com.scofu.common.inject.Feature;
 import com.scofu.community.RankRepository;
 import com.scofu.community.bukkit.design.RankWindow;
